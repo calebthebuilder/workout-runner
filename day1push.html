@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Day 1 – PUSH (Beginner)</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background:#0b0f14; color:#e8eef6; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
+    .top { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .pill { background:#141c26; border:1px solid #243446; padding:10px 12px; border-radius:999px; }
+    .time { font-variant-numeric: tabular-nums; font-weight:800; letter-spacing:0.5px; }
+    .card { background:#0f1722; border:1px solid #223244; border-radius:16px; padding:14px; margin-top: 12px; box-shadow: 0 10px 25px rgba(0,0,0,.25); }
+    .grid { display:grid; grid-template-columns: 92px 1fr; gap:12px; align-items:center; }
+    img.thumb { width:92px; height:92px; object-fit:cover; border-radius:14px; border:1px solid #223244; background:#0b0f14; }
+    h2 { font-size: 16px; margin: 0 0 6px 0; }
+    .muted { color:#b8c7da; font-size: 13px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; }
+    .kv { background:#141c26; border:1px solid #243446; border-radius:12px; padding:10px 12px; }
+    .kv b { display:block; font-size: 12px; color:#b8c7da; margin-bottom:2px; }
+    .kv span { font-weight:800; }
+    .controls { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top: 12px; }
+    button {
+      width:100%; padding:14px 14px; border-radius:14px; border:1px solid #2b3f56;
+      background:#152235; color:#e8eef6; font-weight:800; font-size: 15px; cursor:pointer;
+    }
+    button.primary { background:#1f3b63; border-color:#355b8f; }
+    button.danger { background:#3a1c22; border-color:#6a2a35; }
+    button:active { transform: translateY(1px); }
+    .footer { margin-top: 12px; display:flex; gap:10px; flex-wrap:wrap; }
+    .footer button { flex: 1; min-width: 150px; }
+    .badge { display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid #2b3f56; background:#141c26; font-size: 12px; color:#b8c7da; }
+    .big { font-size: 20px; font-weight: 900; }
+    .mini { font-size: 12px; color:#b8c7da; margin-top: 10px; line-height: 1.35; }
+    .setline { font-variant-numeric: tabular-nums; font-weight: 900; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="pill">
+        <div class="muted">Workout</div>
+        <div class="time big" id="workoutTime">0:00</div>
+      </div>
+      <div class="pill">
+        <div class="muted">Rest</div>
+        <div class="time big" id="restTime">0:00</div>
+      </div>
+      <div class="pill">
+        <div class="muted">Day</div>
+        <div class="time" style="font-weight:900;">1 – PUSH</div>
+      </div>
+      <span class="badge" id="statusBadge">Ready</span>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <img class="thumb" id="exImg" alt="exercise image" />
+        <div>
+          <h2 id="exName">—</h2>
+          <div class="muted" id="exNotes">—</div>
+
+          <div class="row">
+            <div class="kv"><b>Sets × Reps</b><span id="exSetsReps">—</span></div>
+            <div class="kv"><b>Beginner Weight</b><span id="exWeight">—</span></div>
+            <div class="kv"><b>Set</b><span class="setline" id="exSetTracker">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="primary" id="btnStartWorkout">Start Workout</button>
+        <button id="btnStartRest">Start Rest (75s)</button>
+        <button id="btnSetDone">Set Done</button>
+        <button class="danger" id="btnResetSet">Reset Sets</button>
+      </div>
+
+      <div class="footer">
+        <button id="btnPrev">◀ Prev</button>
+        <button id="btnNext" class="primary">Next ▶</button>
+      </div>
+
+      <div class="mini">
+        <b>Rules:</b> leave ~2 reps in reserve; clean form.  
+        <b>Progress:</b> if you hit top reps on all sets → add 5 lb next session.
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ✅ DAY 1 (PUSH) — LOCAL IMAGES
+  // Put these image files in the SAME folder as this HTML.
+  const workout = [
+    {
+      name: "Dumbbell Bench Press",
+      sets: 3, reps: "8–10",
+      weight: "25–40 lb dumbbells",
+      notes: "Controlled reps. Shoulder blades squeezed. Stop 2 reps before failure.",
+      img: "bench.jpg"
+    },
+    {
+      name: "Incline Dumbbell Press",
+      sets: 3, reps: "8–10",
+      weight: "20–35 lb dumbbells",
+      notes: "Bench 30–45°. Slow lower. Light pause at bottom.",
+      img: "incline.jpg"
+    },
+    {
+      name: "Dumbbell Lateral Raise",
+      sets: 3, reps: "12–15",
+      weight: "10–15 lb dumbbells",
+      notes: "No swing. Raise to shoulder height. Keep traps relaxed.",
+      img: "lateral.jpg"
+    },
+    {
+      name: "Cable Chest Fly",
+      sets: 2, reps: "12–15",
+      weight: "15–30 lb per side",
+      notes: "Big stretch, then squeeze 1 sec at center.",
+      img: "fly.jpg"
+    },
+    {
+      name: "Rope Triceps Pushdown",
+      sets: 3, reps: "10–12",
+      weight: "30–50 lb",
+      notes: "Elbows pinned. Spread rope at bottom. Full control up.",
+      img: "pushdown.jpg"
+    }
+  ];
+
+  let workoutStart = null;
+  let workoutTimerId = null;
+
+  let restSeconds = 0;
+  let restTimerId = null;
+
+  let idx = 0;
+  let currentSet = 0;
+
+  const el = (id) => document.getElementById(id);
+
+  function fmt(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  function startWorkoutTimer() {
+    if (workoutTimerId) return;
+    workoutStart = Date.now();
+    el("statusBadge").textContent = "Running";
+    workoutTimerId = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - workoutStart) / 1000);
+      el("workoutTime").textContent = fmt(elapsed);
+    }, 250);
+  }
+
+  function stopRestTimer() {
+    if (restTimerId) clearInterval(restTimerId);
+    restTimerId = null;
+    restSeconds = 0;
+    el("restTime").textContent = "0:00";
+  }
+
+  function startRestTimer(seconds = 75) {
+    stopRestTimer();
+    restSeconds = seconds;
+    el("restTime").textContent = fmt(restSeconds);
+    restTimerId = setInterval(() => {
+      restSeconds--;
+      el("restTime").textContent = fmt(Math.max(restSeconds, 0));
+      if (restSeconds <= 0) {
+        clearInterval(restTimerId);
+        restTimerId = null;
+        if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+      }
+    }, 1000);
+  }
+
+  function render() {
+    const ex = workout[idx];
+    el("exName").textContent = `${idx + 1}/${workout.length} — ${ex.name}`;
+    el("exNotes").textContent = ex.notes;
+    el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
+    el("exWeight").textContent = ex.weight;
+    el("exImg").src = ex.img;
+
+    el("exSetTracker").textContent = `Set ${currentSet}/${ex.sets}`;
+  }
+
+  function nextExercise() {
+    stopRestTimer();
+    idx = Math.min(idx + 1, workout.length - 1);
+    currentSet = 0;
+    el("statusBadge").textContent = "Running";
+    render();
+  }
+
+  function prevExercise() {
+    stopRestTimer();
+    idx = Math.max(idx - 1, 0);
+    currentSet = 0;
+    el("statusBadge").textContent = "Running";
+    render();
+  }
+
+  function setDone() {
+    const ex = workout[idx];
+    if (currentSet < ex.sets) currentSet++;
+    render();
+
+    if (currentSet < ex.sets) {
+      startRestTimer(75);
+    } else {
+      stopRestTimer();
+      el("statusBadge").textContent = "Exercise Complete";
+      if (idx === workout.length - 1) {
+        if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
+        alert("Day 1 complete ✅");
+      }
+    }
+  }
+
+  el("btnStartWorkout").addEventListener("click", startWorkoutTimer);
+  el("btnStartRest").addEventListener("click", () => startRestTimer(75));
+  el("btnSetDone").addEventListener("click", () => { startWorkoutTimer(); setDone(); });
+  el("btnResetSet").addEventListener("click", () => { currentSet = 0; stopRestTimer(); el("statusBadge").textContent="Running"; render(); });
+
+  el("btnNext").addEventListener("click", () => {
+    if (idx === workout.length - 1) alert("Day 1 complete ✅");
+    else nextExercise();
+  });
+
+  el("btnPrev").addEventListener("click", prevExercise);
+
+  render();
+</script>
+</body>
+</html>
