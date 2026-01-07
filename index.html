@@ -7,7 +7,7 @@
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background:#0b0f14; color:#e8eef6; }
-    .wrap { max-width: 860px; margin: 0 auto; padding: 16px; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
     .top { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
     .pill { background:#141c26; border:1px solid #243446; padding:10px 12px; border-radius:999px; }
     .time { font-variant-numeric: tabular-nums; font-weight:900; letter-spacing:0.5px; }
@@ -22,8 +22,8 @@
     .tabbtn.active{ background:#1f3b63; border-color:#355b8f; }
 
     .card { background:#0f1722; border:1px solid #223244; border-radius:16px; padding:14px; margin-top: 12px; box-shadow: 0 10px 25px rgba(0,0,0,.25); }
-    .grid { display:grid; grid-template-columns: 92px 1fr; gap:12px; align-items:center; }
-    img.thumb { width:92px; height:92px; object-fit:cover; border-radius:14px; border:1px solid #223244; background:#0b0f14; }
+    .grid { display:grid; grid-template-columns: 96px 1fr; gap:12px; align-items:center; }
+    img.thumb { width:96px; height:96px; object-fit:cover; border-radius:14px; border:1px solid #223244; background:#0b0f14; }
 
     h2 { font-size: 16px; margin: 0 0 6px 0; }
     .muted { color:#b8c7da; font-size: 13px; }
@@ -49,6 +49,18 @@
     .plan { margin-top:10px; font-size:12px; color:#b8c7da; line-height:1.5; }
     .plan b { color:#e8eef6; }
     .warn { display:none; margin-top:8px; color:#ffb4b4; font-size:12px; }
+
+    .quote {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #111820;
+      border-left: 4px solid #f5c400;
+      color: #f5c400;
+      font-weight: 900;
+      font-size: 13px;
+      line-height: 1.35;
+      border-radius: 8px;
+    }
   </style>
 </head>
 
@@ -78,6 +90,7 @@
           <img class="thumb" id="exImg" alt="exercise image"
                onerror="this.style.display='none'; document.getElementById('imgErr').style.display='block';" />
           <div class="warn" id="imgErr">Image not found — check filename in repo (must match exactly).</div>
+          <div id="quoteBox" class="quote">“Every workout is a step forward.”</div>
         </div>
 
         <div>
@@ -105,7 +118,7 @@
       </div>
 
       <div class="mini">
-        <b>Rules:</b> leave ~2 reps in reserve; clean form.  
+        <b>Rules:</b> leave ~2 reps in reserve; clean form.
         <b>Progress:</b> hit top reps on all sets → add 5 lb next session.
       </div>
 
@@ -114,10 +127,119 @@
   </div>
 
 <script>
-  // ---------------------------
-  // DATA: Day 1 + Day 2
-  // Images must exist in your GitHub repo root with these exact names.
-  // ---------------------------
+
+  const QUOTES = [
+    "Every workout is a step forward.",
+    "You miss 100% of the shots you don’t take.",
+    "Your limits are all in your mind.",
+    "Motivation ignites the spark, habit fuels the fire.",
+    "Strength does not come from physical capacity. It comes from an indomitable will.",
+    "Success isn’t about greatness. It’s about consistency.",
+    "Train hard to change.",
+    "Endure the pain, enjoy the gain.",
+    "No matter how slow you go, you’re still lapping everybody on the couch.",
+    "The body achieves what the mind believes.",
+    "The real workout starts when you want to stop.",
+    "I hated every minute of training, but I said, ‘Don’t quit.’",
+    "We are what we repeatedly do. Excellence then is not an act but a habit.",
+    "Push harder than yesterday.",
+    "The hard days are the best because that’s when champions are made.",
+    "If you don’t find the time, if you don’t do the work, you don’t get the results.",
+    "Sweat is your body’s way of showing progress.",
+    "Pain is temporary, but pride is forever.",
+    "Strong today, stronger tomorrow.",
+    "Working out is not about being better than someone else. It’s about being better than you used to be.",
+    "Don’t wait until you’ve reached your goal to be proud of yourself.",
+    "Your body hears everything your mind says.",
+    "It’s up to you to start making healthy choices today.",
+    "Stay focused. Stay committed. Stay disciplined.",
+    "A slow progress is still progress.",
+    "If it doesn’t challenge you, it won’t change you.",
+    "Discipline is doing what you hate, but doing it like you love it.",
+    "Your future self will thank you for today’s workout.",
+    "Every workout is progress.",
+    "Believe in yourself and you will be unstoppable.",
+    "Train like a beast.",
+    "You get what you work for.",
+    "No pain, no gain.",
+    "Push yourself because no one else will do it for you.",
+    "Work out as if your life depends on it, because it does.",
+    "If you want to achieve what very few people do, you have to do what most people won’t.",
+    "Get comfortable being uncomfortable.",
+    "What would you rather feel — the sting of discipline or the pain of regret?",
+    "Do it for her.",
+    "Discipline equals freedom.",
+    "Push past your limits.",
+    "Train insane or remain the same.",
+    "Stay positive.",
+    "Don’t stop when you’re tired — stop when you’re done.",
+    "Victory loves preparation.",
+    "Be stronger than your excuses.",
+    "One more rep.",
+    "Today’s pain is tomorrow’s strength.",
+    "Stay consistent — results will follow.",
+    "Success is the sum of small efforts repeated day in and day out.",
+    "You don’t get what you wish for. You get what you work for.",
+    "One workout at a time.",
+    "Earn your strength.",
+    "Results happen when excuses stop.",
+    "Show up. Put in work. Stay consistent.",
+    "Hard work beats talent when talent doesn’t work hard.",
+    "Today’s effort is tomorrow’s progress.",
+    "You came this far — don’t stop now.",
+    "Strength is built when no one is watching.",
+    "Prove it to yourself.",
+    "Every rep counts.",
+    "Your body can handle it. Your mind must believe it.",
+    "Progress, not perfection.",
+    "Do the work others won’t.",
+    "This is where discipline shows.",
+    "Consistency creates confidence.",
+    "Small wins add up.",
+    "Focus on the next rep.",
+    "You are stronger than yesterday.",
+    "Earn the results you want.",
+    "Hard days build strong people.",
+    "Train with purpose.",
+    "Comfort never built strength.",
+    "Stay hungry. Stay humble.",
+    "The work you put in today pays off tomorrow.",
+    "No shortcuts. Just work.",
+    "Strength starts with showing up.",
+    "Trust the process.",
+    "Do it tired. Do it anyway.",
+    "Every session matters.",
+    "You’re building something.",
+    "Pain is temporary. Progress is permanent.",
+    "Effort never goes unnoticed.",
+    "You didn’t come this far to stop.",
+    "Train your mind as hard as your body.",
+    "Work now. Shine later.",
+    "No one can do this for you.",
+    "Become harder to break.",
+    "Results reward discipline.",
+    "This is how strength is earned.",
+    "Do the reps. Get the results.",
+    "Stay locked in.",
+    "You’re stronger than you think.",
+    "Keep stacking wins.",
+    "Excuses don’t lift weight.",
+    "Focus beats motivation.",
+    "Train for progress, not approval.",
+    "This effort compounds.",
+    "You’re becoming more capable.",
+    "One more set. One more step."
+  ];
+
+  function updateQuote() {
+    const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    const box = document.getElementById("quoteBox");
+    if (box) box.textContent = "“" + q + "”";
+  }
+
+  // ---------------------------------------
+  // DATA: Day 1 + Day 2 + Day 3 (Beginner)
+  // ---------------------------------------
   const DAYS = {
     day1: {
       label: "Day 1 – PUSH",
@@ -125,13 +247,13 @@
         { name:"Dumbbell Bench Press", sets:3, reps:"8–10", weight:"25–40 lb dumbbells",
           notes:"Controlled reps. Shoulder blades squeezed. Stop 2 reps before failure.", img:"dumbbell-benchpress.gif" },
         { name:"Incline Dumbbell Press", sets:3, reps:"8–10", weight:"20–35 lb dumbbells",
-          notes:"Bench 30–45°. Slow lower. Light pause at bottom.", img:"incline-dumbbell-bench.gif" },
+          notes:"Bench 30–45°. Slow lower. Light pause at bottom.", img:"incline-dumbbellpress.gif" },
         { name:"Dumbbell Lateral Raise", sets:3, reps:"12–15", weight:"10–15 lb dumbbells",
-          notes:"No swing. Raise to shoulder height. Keep traps relaxed.", img:"dumbbell-lateral-raise.gif" },
+          notes:"No swing. Raise to shoulder height. Keep traps relaxed.", img:"dumbbell-lateralraise.gif" },
         { name:"Cable Chest Fly", sets:2, reps:"12–15", weight:"15–30 lb per side",
-          notes:"Big stretch, then squeeze 1 sec at center.", img:"cable-chest-fly.gif" },
+          notes:"Big stretch, then squeeze 1 sec at center.", img:"cable-fly.gif" },
         { name:"Rope Triceps Pushdown", sets:3, reps:"10–12", weight:"30–50 lb",
-          notes:"Elbows pinned. Spread rope at bottom. Full control up.", img:"rope-tri-pushdown.gif" },
+          notes:"Elbows pinned. Spread rope at bottom. Full control up.", img:"rope-pushdown.gif" },
       ]
     },
 
@@ -141,17 +263,16 @@
         { name:"Lat Pulldown", sets:3, reps:"8–10", weight:"70–100 lb",
           notes:"Full stretch at top. Pull elbows down. Chest tall.", img:"latpulldown.gif" },
         { name:"Seated Cable Row", sets:3, reps:"10", weight:"70–110 lb",
-          notes:"Chest up. Pull elbows back. Squeeze shoulder blades.", img:"cable-row.gif" },
+          notes:"Chest up. Pull elbows back. Squeeze shoulder blades.", img:"seated-cablerow.gif" },
         { name:"Machine Row OR Dumbbell Row", sets:2, reps:"10–12", weight:"Machine 50–90 lb / DB 25–45 lb",
-          notes:"No jerking. Control the negative. Keep torso stable.", img:"dumbrow.gif" },
+          notes:"No jerking. Control the negative. Keep torso stable.", img:"machine-row.gif" },
         { name:"Dumbbell Curl", sets:3, reps:"10–12", weight:"15–25 lb dumbbells",
-          notes:"No swinging. Slow lower. Elbows close to sides.", img:"curl.gif" },
+          notes:"No swinging. Slow lower. Elbows close to sides.", img:"dumbbell-curl.gif" },
         { name:"Hammer Curl", sets:2, reps:"12", weight:"15–25 lb dumbbells",
-          notes:"Neutral grip. Full range. Control down.", img:"hammer.gif" },
+          notes:"Neutral grip. Full range. Control down.", img:"hammer-curl.gif" },
       ]
-    }
-  
-,
+    },
+
     day3: {
       label: "Day 3 – SHOULDERS & ARMS",
       exercises: [
@@ -167,7 +288,7 @@
           notes:"Elbows narrow. Big stretch behind head. Smooth lockout.", img:"overhead-cable-triceps.gif" },
       ]
     }
-};
+  };
 
   // ---------------------------
   // STATE
@@ -261,6 +382,8 @@
       const marker = (i === idx) ? "👉" : "•";
       return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
     }).join("<br>");
+
+    updateQuote();
   }
 
   function nextExercise() {
@@ -339,6 +462,3 @@
 </script>
 </body>
 </html>
-
-
-
