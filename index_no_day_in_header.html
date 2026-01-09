@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workout Runner (Beginner)</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background:#0b0f14; color:#e8eef6; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 16px; }
+    .top { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .pill { background:#141c26; border:1px solid #243446; padding:10px 12px; border-radius:999px; }
+    .time { font-variant-numeric: tabular-nums; font-weight:900; letter-spacing:0.5px; }
+    .big { font-size: 20px; }
+
+    .tabs { display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
+    .day-select {
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid #2b3f56;
+      background:#152235;
+      color:#e8eef6;
+      font-weight:600;
+      font-size:14px;
+    }
+    .day-select:focus {
+      outline:none;
+      border-color:#355b8f;
+    }
+    .tabbtn{
+      border-radius:999px; padding:10px 12px; border:1px solid #2b3f56;
+      background:#152235; color:#e8eef6; font-weight:900; cursor:pointer;
+    }
+    .tabbtn.active{ background:#1f3b63; border-color:#355b8f; }
+
+    .card { background:#0f1722; border:1px solid #223244; border-radius:16px; padding:14px; margin-top: 12px; box-shadow: 0 10px 25px rgba(0,0,0,.25); }
+    .grid { display:grid; grid-template-columns: 96px 1fr; gap:12px; align-items:center; }
+    img.thumb { width:96px; height:96px; object-fit:cover; border-radius:14px; border:1px solid #223244; background:#0b0f14; }
+
+    h2 { font-size: 16px; margin: 0 0 6px 0; }
+    .muted { color:#b8c7da; font-size: 13px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; }
+    .kv { background:#141c26; border:1px solid #243446; border-radius:12px; padding:10px 12px; }
+    .kv b { display:block; font-size: 12px; color:#b8c7da; margin-bottom:2px; }
+    .kv span { font-weight:900; }
+
+    .controls { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top: 12px; }
+    button {
+      width:100%; padding:14px 14px; border-radius:14px; border:1px solid #2b3f56;
+      background:#152235; color:#e8eef6; font-weight:900; font-size: 15px; cursor:pointer;
+    }
+    button.primary { background:#1f3b63; border-color:#355b8f; }
+    button.danger { background:#3a1c22; border-color:#6a2a35; }
+    button:active { transform: translateY(1px); }
+
+    .footer { margin-top: 12px; display:flex; gap:10px; flex-wrap:wrap; }
+    .footer button { flex: 1; min-width: 150px; }
+
+    .mini { font-size: 12px; color:#b8c7da; margin-top: 10px; line-height: 1.35; }
+    .setline { font-variant-numeric: tabular-nums; font-weight: 900; }
+    .plan { margin-top:10px; font-size:12px; color:#b8c7da; line-height:1.5; }
+    .plan b { color:#e8eef6; }
+    .warn { display:none; margin-top:8px; color:#ffb4b4; font-size:12px; }
+
+
+    .top-timer-row {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:4px;
+    }
+    .mini-action {
+      width:auto;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #2b3f56;
+      background:#152235;
+      color:#e8eef6;
+      font-weight:700;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .mini-action.primary {
+      background:#1f3b63;
+      border-color:#355b8f;
+    }
+
+    .quote {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #111820;
+      border-left: 4px solid #f5c400;
+      color: #f5c400;
+      font-weight: 900;
+      font-size: 13px;
+      line-height: 1.35;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="pill">
+        <div class="muted">Workout</div>
+        <div class="top-timer-row">
+          <div class="time big" id="workoutTime">0:00</div>
+          <button class="mini-action primary" id="btnStartWorkout">Start</button>
+        </div>
+      </div>
+      <div class="pill">
+        <div class="muted">Rest</div>
+        <div class="top-timer-row">
+          <div class="time big" id="restTime">0:00</div>
+          <button class="mini-action" id="btnStartRest">Start</button>
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="tabs">
+      <label class="muted" for="daySelect">Day</label>
+      <select id="daySelect" class="day-select">
+        <option value="day1">Upper 1 – Push</option>
+        <option value="day2">Upper 2 – Pull</option>
+        <option value="day3">Upper 3 – Shoulders & Arms</option>
+        <option value="leg1">Leg 1 – Quads & Glutes</option>
+        <option value="leg2">Leg 2 – Posterior Chain</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <img class="thumb" id="exImg" alt="exercise image"
+               onerror="this.style.display='none'; document.getElementById('imgErr').style.display='block';" />
+          <div class="warn" id="imgErr">Image not found — check filename in repo (must match exactly).</div>
+          <div id="quoteBox" class="quote">“Every workout is a step forward.”</div>
+        </div>
+
+        <div>
+          <h2 id="exName">—</h2>
+          <div class="muted" id="exNotes">—</div>
+
+          <div class="row">
+            <div class="kv"><b>Sets × Reps</b><span id="exSetsReps">—</span></div>
+            <div class="kv"><b>Beginner Weight</b><span id="exWeight">—</span></div>
+            <div class="kv"><b>Set</b><span class="setline" id="exSetTracker">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="btnSetDone">Set Done</button>
+        <button class="danger" id="btnResetSet">Reset Sets</button>
+      </div>
+
+      <div class="footer">
+        <button id="btnPrev">◀ Prev</button>
+        <button id="btnNext" class="primary">Next ▶</button>
+      </div>
+
+      <div class="mini">
+        <b>Rules:</b> leave ~2 reps in reserve; clean form.
+        <b>Progress:</b> hit top reps on all sets → add 5 lb next session.
+      </div>
+
+      <div class="plan" id="planList"></div>
+    </div>
+  </div>
+
+<script>
+
+  const QUOTES = [
+    "Every workout is a step forward.",
+    "You miss 100% of the shots you don’t take.",
+    "Your limits are all in your mind.",
+    "Motivation ignites the spark, habit fuels the fire.",
+    "Strength does not come from physical capacity. It comes from an indomitable will.",
+    "Success isn’t about greatness. It’s about consistency.",
+    "Train hard to change.",
+    "Endure the pain, enjoy the gain.",
+    "No matter how slow you go, you’re still lapping everybody on the couch.",
+    "The body achieves what the mind believes.",
+    "The real workout starts when you want to stop.",
+    "I hated every minute of training, but I said, ‘Don’t quit.’",
+    "We are what we repeatedly do. Excellence then is not an act but a habit.",
+    "Push harder than yesterday.",
+    "The hard days are the best because that’s when champions are made.",
+    "If you don’t find the time, if you don’t do the work, you don’t get the results.",
+    "Sweat is your body’s way of showing progress.",
+    "Pain is temporary, but pride is forever.",
+    "Strong today, stronger tomorrow.",
+    "Working out is not about being better than someone else. It’s about being better than you used to be.",
+    "Don’t wait until you’ve reached your goal to be proud of yourself.",
+    "Your body hears everything your mind says.",
+    "It’s up to you to start making healthy choices today.",
+    "Stay focused. Stay committed. Stay disciplined.",
+    "A slow progress is still progress.",
+    "If it doesn’t challenge you, it won’t change you.",
+    "Discipline is doing what you hate, but doing it like you love it.",
+    "Your future self will thank you for today’s workout.",
+    "Every workout is progress.",
+    "Believe in yourself and you will be unstoppable.",
+    "Train like a beast.",
+    "You get what you work for.",
+    "No pain, no gain.",
+    "Push yourself because no one else will do it for you.",
+    "Work out as if your life depends on it, because it does.",
+    "If you want to achieve what very few people do, you have to do what most people won’t.",
+    "Get comfortable being uncomfortable.",
+    "What would you rather feel — the sting of discipline or the pain of regret?",
+    "Do it for her.",
+    "Discipline equals freedom.",
+    "Push past your limits.",
+    "Train insane or remain the same.",
+    "Stay positive.",
+    "Don’t stop when you’re tired — stop when you’re done.",
+    "Victory loves preparation.",
+    "Be stronger than your excuses.",
+    "One more rep.",
+    "Today’s pain is tomorrow’s strength.",
+    "Stay consistent — results will follow.",
+    "Success is the sum of small efforts repeated day in and day out.",
+    "You don’t get what you wish for. You get what you work for.",
+    "One workout at a time.",
+    "Earn your strength.",
+    "Results happen when excuses stop.",
+    "Show up. Put in work. Stay consistent.",
+    "Hard work beats talent when talent doesn’t work hard.",
+    "Today’s effort is tomorrow’s progress.",
+    "You came this far — don’t stop now.",
+    "Strength is built when no one is watching.",
+    "Prove it to yourself.",
+    "Every rep counts.",
+    "Your body can handle it. Your mind must believe it.",
+    "Progress, not perfection.",
+    "Do the work others won’t.",
+    "This is where discipline shows.",
+    "Consistency creates confidence.",
+    "Small wins add up.",
+    "Focus on the next rep.",
+    "You are stronger than yesterday.",
+    "Earn the results you want.",
+    "Hard days build strong people.",
+    "Train with purpose.",
+    "Comfort never built strength.",
+    "Stay hungry. Stay humble.",
+    "The work you put in today pays off tomorrow.",
+    "No shortcuts. Just work.",
+    "Strength starts with showing up.",
+    "Trust the process.",
+    "Do it tired. Do it anyway.",
+    "Every session matters.",
+    "You’re building something.",
+    "Pain is temporary. Progress is permanent.",
+    "Effort never goes unnoticed.",
+    "You didn’t come this far to stop.",
+    "Train your mind as hard as your body.",
+    "Work now. Shine later.",
+    "No one can do this for you.",
+    "Become harder to break.",
+    "Results reward discipline.",
+    "This is how strength is earned.",
+    "Do the reps. Get the results.",
+    "Stay locked in.",
+    "You’re stronger than you think.",
+    "Keep stacking wins.",
+    "Excuses don’t lift weight.",
+    "Focus beats motivation.",
+    "Train for progress, not approval.",
+    "This effort compounds.",
+    "You’re becoming more capable.",
+    "One more set. One more step."
+  ];
+
+  // --- Quotes: no repeats until all are used ---
+let _quoteBag = [];
+let _lastQuote = null;
+
+function _shuffle(arr) {
+  // Fisher–Yates shuffle
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function _refillQuoteBag() {
+  _quoteBag = _shuffle([...QUOTES]);
+  // avoid the first quote after refill matching the previous quote (small UX polish)
+  if (_lastQuote && _quoteBag.length > 1 && _quoteBag[0] === _lastQuote) {
+    [_quoteBag[0], _quoteBag[1]] = [_quoteBag[1], _quoteBag[0]];
+  }
+}
+
+function updateQuote() {
+  if (_quoteBag.length === 0) _refillQuoteBag();
+  const q = _quoteBag.shift();
+  _lastQuote = q;
+  const box = document.getElementById("quoteBox");
+  if (box) box.textContent = "“" + q + "”";
+}
+
+  // ---------------------------------------
+  // DATA: Day 1 + Day 2 + Day 3 (Beginner)
+  // ---------------------------------------
+  const DAYS = {
+    day1: {
+      label: "Upper 1 – Push",
+      exercises: [
+        { name:"Dumbbell Bench Press", sets:3, reps:"8–10", weight:"25–40 lb dumbbells",
+          notes:"Controlled reps. Shoulder blades squeezed. Stop 2 reps before failure.", img:"dumbbell-benchpress.gif" },
+        { name:"Incline Dumbbell Press", sets:3, reps:"8–10", weight:"20–35 lb dumbbells",
+          notes:"Bench 30–45°. Slow lower. Light pause at bottom.", img:"incline-dumbbellpress.gif" },
+        { name:"Dumbbell Lateral Raise", sets:3, reps:"12–15", weight:"10–15 lb dumbbells",
+          notes:"No swing. Raise to shoulder height. Keep traps relaxed.", img:"dumbbell-lateralraise.gif" },
+        { name:"Cable Chest Fly", sets:2, reps:"12–15", weight:"15–30 lb per side",
+          notes:"Big stretch, then squeeze 1 sec at center.", img:"cable-fly.gif" },
+        { name:"Rope Triceps Pushdown", sets:3, reps:"10–12", weight:"30–50 lb",
+          notes:"Elbows pinned. Spread rope at bottom. Full control up.", img:"rope-pushdown.gif" },
+      ]
+    },
+
+    day2: {
+      label: "Upper 2 – Pull",
+      exercises: [
+        { name:"Lat Pulldown", sets:3, reps:"8–10", weight:"70–100 lb",
+          notes:"Full stretch at top. Pull elbows down. Chest tall.", img:"latpulldown.gif" },
+        { name:"Seated Cable Row", sets:3, reps:"10", weight:"70–110 lb",
+          notes:"Chest up. Pull elbows back. Squeeze shoulder blades.", img:"seated-cablerow.gif" },
+        { name:"Machine Row OR Dumbbell Row", sets:2, reps:"10–12", weight:"Machine 50–90 lb / DB 25–45 lb",
+          notes:"No jerking. Control the negative. Keep torso stable.", img:"dumbrow.gif" },
+        { name:"Dumbbell Curl", sets:3, reps:"10–12", weight:"15–25 lb dumbbells",
+          notes:"No swinging. Slow lower. Elbows close to sides.", img:"dumbbell-curl.gif" },
+        { name:"Hammer Curl", sets:2, reps:"12", weight:"15–25 lb dumbbells",
+          notes:"Neutral grip. Full range. Control down.", img:"hammer-curl.gif" },
+      ]
+    },
+
+    day3: {
+      label: "Upper 3 – Shoulders & Arms",
+      exercises: [
+        { name:"Machine Shoulder Press", sets:3, reps:"8–10", weight:"40–80 lb",
+          notes:"Seat so handles start near chin. Control down; don’t slam the stack.", img:"shoulder-press.gif" },
+        { name:"Cable Lateral Raise", sets:3, reps:"12–15", weight:"5–15 lb",
+          notes:"Smooth reps. Keep shoulder down away from ear.", img:"cable-lateral-raise.gif" },
+        { name:"Rear Delt Fly (Machine/Cable)", sets:3, reps:"12–15", weight:"30–60 lb",
+          notes:"Lead with elbows. Pause 1 sec at peak; don’t shrug.", img:"rear-delt-fly.gif" },
+        { name:"Preacher Curl (Machine/EZ)", sets:3, reps:"10", weight:"30–60 lb",
+          notes:"Full stretch at bottom; no bounce. Control the negative.", img:"preacher-curl.gif" },
+        { name:"Overhead Cable Triceps Extension", sets:3, reps:"10–12", weight:"30–50 lb",
+          notes:"Elbows narrow. Big stretch behind head. Smooth lockout.", img:"overhead-cable-triceps.gif" },
+      ]
+    }
+    ,
+    leg1: {
+      label: "Leg 1 – Quads & Glutes",
+      exercises: [
+        { name:"Leg Press (Machine)", sets:3, reps:"10–12", weight:"90–180 lb total",
+          notes:"Feet shoulder-width on platform. Control the descent. Do not lock knees hard at the top.", img:"leg-press.gif" },
+        { name:"Goblet Squat", sets:3, reps:"10–12", weight:"25–45 lb dumbbell",
+          notes:"Hold the dumbbell close to chest. Sit between your hips, keep heels down and chest up.", img:"goblet-squat.gif" },
+        { name:"Walking Lunge", sets:2, reps:"10 steps per leg", weight:"15–25 lb dumbbells",
+          notes:"Long stride. Front knee tracks over toes, back knee drops toward the floor under control.", img:"walking-lunge.gif" },
+        { name:"Leg Extension (Machine)", sets:2, reps:"12–15", weight:"40–80 lb",
+          notes:"Pause and squeeze at the top. Lower under control; don’t swing the stack.", img:"leg-extension.gif" },
+        { name:"Standing Calf Raise", sets:3, reps:"12–15", weight:"Bodyweight or light added load",
+          notes:"Full stretch at bottom and hard squeeze at top. Use a stable support if needed.", img:"standing-calf-raise.gif" },
+      ]
+    },
+    leg2: {
+      label: "Leg 2 – Posterior Chain",
+      exercises: [
+        { name:"Romanian Deadlift (DB/BB)", sets:3, reps:"8–10", weight:"60–135 lb total",
+          notes:"Soft knees. Push hips back, feel the stretch in hamstrings. Keep back flat, bar close.", img:"romanian-deadlift.gif" },
+        { name:"Hip Thrust (Bench/ Machine)", sets:3, reps:"10–12", weight:"60–135 lb",
+          notes:"Drive through heels. Squeeze glutes hard at top and pause briefly.", img:"hip-thrust.gif" },
+        { name:"Leg Curl (Machine)", sets:3, reps:"10–12", weight:"40–80 lb",
+          notes:"Control the curl and the return. Don’t slam the stack at extension.", img:"leg-curl.gif" },
+        { name:"Bodyweight Step-Up", sets:2, reps:"10 per leg", weight:"Bodyweight or light dumbbells",
+          notes:"Plant whole foot on the step. Drive through heel and avoid pushing off the back leg.", img:"step-up.gif" },
+        { name:"Seated Calf Raise", sets:3, reps:"12–15", weight:"25–70 lb",
+          notes:"Slow stretch at bottom, strong squeeze at top. Do not bounce.", img:"seated-calf-raise.gif" },
+      ]
+    }
+  };
+
+  // ---------------------------
+  // STATE
+  // ---------------------------
+  let currentDayKey = "day1";
+  let idx = 0;
+  let currentSet = 0;
+
+  let workoutStart = null;
+  let workoutTimerId = null;
+
+  let restSeconds = 0;
+  let restTimerId = null;
+
+  const el = (id) => document.getElementById(id);
+
+  function fmt(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  function startWorkoutTimer() {
+    if (workoutTimerId) return;
+    workoutStart = Date.now();
+    workoutTimerId = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - workoutStart) / 1000);
+      el("workoutTime").textContent = fmt(elapsed);
+    }, 250);
+  }
+
+  function resetWorkoutTimer() {
+    if (workoutTimerId) clearInterval(workoutTimerId);
+    workoutTimerId = null;
+    workoutStart = null;
+    el("workoutTime").textContent = "0:00";
+  }
+
+  function stopRestTimer() {
+    if (restTimerId) clearInterval(restTimerId);
+    restTimerId = null;
+    restSeconds = 0;
+    el("restTime").textContent = "0:00";
+  }
+
+  function startRestTimer(seconds = 75) {
+    stopRestTimer();
+    restSeconds = seconds;
+    el("restTime").textContent = fmt(restSeconds);
+    restTimerId = setInterval(() => {
+      restSeconds--;
+      el("restTime").textContent = fmt(Math.max(restSeconds, 0));
+      if (restSeconds <= 0) {
+        clearInterval(restTimerId);
+        restTimerId = null;
+        if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+      }
+    }, 1000);
+  }
+
+  function getExercises() {
+    return DAYS[currentDayKey].exercises;
+  }
+
+  function renderTabs() {
+    const sel = el("daySelect");
+    if (sel && sel.value !== currentDayKey) {
+      sel.value = currentDayKey;
+    }
+  }
+
+  function render() {
+    renderTabs();
+    const list = getExercises();
+    const ex = list[idx];
+
+    // reset image error
+    el("imgErr").style.display = "none";
+    el("exImg").style.display = "block";
+
+    el("exName").textContent = `${idx + 1}/${list.length}: ${ex.name}`;
+    el("exNotes").textContent = ex.notes;
+    el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
+    el("exWeight").textContent = ex.weight;
+    el("exSetTracker").textContent = `Set ${currentSet}/${ex.sets}`;
+
+    // use explicit relative path
+    el("exImg").src = "./" + ex.img;
+
+    el("planList").innerHTML = list.map((w, i) => {
+      const marker = (i === idx) ? "👉" : "•";
+      return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
+    }).join("<br>");
+
+    updateQuote();
+  }
+
+  function nextExercise() {
+    stopRestTimer();
+    const list = getExercises();
+    if (idx < list.length - 1) {
+      idx++;
+      currentSet = 0;
+      render();
+    } else {
+      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
+      alert(`${DAYS[currentDayKey].label} complete ✅`);
+    }
+  }
+
+  function prevExercise() {
+    stopRestTimer();
+    idx = Math.max(idx - 1, 0);
+    currentSet = 0;
+    render();
+  }
+
+  function setDone() {
+    const list = getExercises();
+    const ex = list[idx];
+
+    if (currentSet < ex.sets) currentSet++;
+    render();
+
+    if (currentSet < ex.sets) {
+      startRestTimer(75);
+    } else {
+      stopRestTimer();
+      if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+    }
+  }
+
+  function resetSets() {
+    currentSet = 0;
+    stopRestTimer();
+    render();
+  }
+
+  function switchDay(dayKey) {
+    currentDayKey = dayKey;
+    idx = 0;
+    currentSet = 0;
+    stopRestTimer();
+    resetWorkoutTimer(); // optional: restart workout timer when switching days
+    render();
+  }
+
+  // ---------------------------
+  // EVENTS
+  // ---------------------------
+  el("btnStartWorkout").addEventListener("click", startWorkoutTimer);
+  el("btnStartRest").addEventListener("click", () => startRestTimer(75));
+  el("btnSetDone").addEventListener("click", () => { startWorkoutTimer(); setDone(); });
+  el("btnResetSet").addEventListener("click", resetSets);
+
+  el("btnNext").addEventListener("click", nextExercise);
+  el("btnPrev").addEventListener("click", prevExercise);
+
+  const daySel = el("daySelect");
+  if (daySel) {
+    daySel.addEventListener("change", (e) => switchDay(e.target.value));
+  }
+
+  // Initial render
+  render();
+</script>
+</body>
+</html>
