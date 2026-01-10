@@ -607,6 +607,7 @@
   function resetSets() {
     currentSet = 0;
     stopRestTimer();
+    el("btnNext").classList.remove("next-ready");
     render();
   }
 
@@ -615,7 +616,8 @@
     idx = 0;
     currentSet = 0;
     stopRestTimer();
-    resetWorkoutTimer(); // optional: restart workout timer when switching days
+    resetWorkoutTimer();
+    el("btnNext").classList.remove("next-ready");
     render();
   }
 
