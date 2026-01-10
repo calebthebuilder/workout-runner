@@ -194,7 +194,8 @@
   <audio id="audioRestComplete" src="rest-complete.mp3"></audio>
   <audio id="audioWorkoutComplete" src="workout-complete.mp3"></audio>
   <audio id="audioSwipe" src="swipe.mp3"></audio>
-
+  <audio id="audioFinalSet" src="final-set.mp3"></audio>
+  
 <script>
   const QUOTES = [
     "Every workout is a step forward.",
@@ -557,6 +558,8 @@
     } else {
       stopRestTimer();
       if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+        //  new sound for final set completed
+  playSound("audioFinalSet");
     }
   }
 
