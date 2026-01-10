@@ -104,6 +104,12 @@
       transform: translateY(1px);
     }
 
+    .next-ready {
+      background: #1f8f4a !important;
+      border-color: #29b15c !important;
+      color: #ffffff !important;
+    }
+
     .quote {
       margin-top: 10px;
       padding: 10px 12px;
@@ -524,8 +530,12 @@
     updateQuote();
   }
 
-  function nextExercise() {
+    function nextExercise() {
     stopRestTimer();
+
+    // reset Next button color when moving to a new exercise
+    el("btnNext").classList.remove("next-ready");
+
     const list = getExercises();
     if (idx < list.length - 1) {
       idx++;
@@ -546,43 +556,53 @@
   }
 
   function setDone() {
-  const list = getExercises();
-  const ex = list[idx];
+    const list = getExercises();
+    const ex = list[idx];
+    const nextBtn = el("btnNext");
 
-  // CASE 1: Extra taps after all sets are complete
-  if (currentSet >= ex.sets) {
-    currentSet = ex.sets;
+    // CASE 1: Extra taps after all sets are complete
+    if (currentSet >= ex.sets) {
+      currentSet = ex.sets;
 
-    // single, clean vibration
-    if (navigator.vibrate) navigator.vibrate(150);
+      // single, clean vibration
+      if (navigator.vibrate) navigator.vibrate(150);
 
-    // play final-set sound EVERY tap after completion
-    playSound("audioFinalSet");
+      // play final-set sound EVERY tap after completion
+      playSound("audioFinalSet");
 
-    // ❌ DO NOT call render() here
-    // Screen + quote stay exactly the same so user knows to hit "Next"
-    return;
+      // keep Next button green to lead them forward
+      nextBtn.classList.add("next-ready");
+
+      // ❌ DO NOT call render() here
+      // Screen + quote stay exactly the same so user knows to hit "Next"
+      return;
+    }
+
+    // Increase the set number FIRST
+    currentSet++;
+
+    // CASE 2: Final set just completed
+    if (currentSet === ex.sets) {
+      stopRestTimer();
+
+      if (navigator.vibrate) navigator.vibrate(150);
+      playSound("audioFinalSet");   // special final-set sound
+
+      // turn Next button green
+      nextBtn.classList.add("next-ready");
+
+      render(); // ✅ update UI + quote ONE last time when they truly finish
+      return;
+    }
+
+    // CASE 3: Normal sets
+    // make sure Next stays normal color during working sets
+    nextBtn.classList.remove("next-ready");
+
+    playSound("audioSetDone");
+    render();
+    startRestTimer(75);
   }
-
-  // Increase the set number FIRST
-  currentSet++;
-
-  // CASE 2: Final set just completed
-  if (currentSet === ex.sets) {
-    stopRestTimer();
-
-    if (navigator.vibrate) navigator.vibrate(150);
-    playSound("audioFinalSet");   // special final-set sound
-
-    render(); // ✅ update UI + quote ONE last time when they truly finish
-    return;
-  }
-
-  // CASE 3: Normal sets
-  playSound("audioSetDone");
-  render();
-  startRestTimer(75);
-}
 
   function resetSets() {
     currentSet = 0;
