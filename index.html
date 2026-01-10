@@ -545,22 +545,32 @@
     render();
   }
 
-  function setDone() {
+    function setDone() {
     const list = getExercises();
     const ex = list[idx];
 
-    if (currentSet < ex.sets) currentSet++;
-    playSound("audioSetDone"); // ✓ Set done
-    render();
+    // CASE 1: Extra taps after all sets are complete
+    if (currentSet >= ex.sets) {
+      if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+      return; // no sound on extra taps
+    }
 
-    if (currentSet < ex.sets) {
-      startRestTimer(75);
-    } else {
+    // Increase the set number FIRST
+    currentSet++;
+
+    // CASE 2: Final set just completed
+    if (currentSet === ex.sets) {
       stopRestTimer();
       if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
-        //  new sound for final set completed
-  playSound("audioFinalSet");
+      playSound("audioFinalSet");   // 🔥 special final-set sound only
+      render();
+      return;
     }
+
+    // CASE 3: Normal sets (not the last one)
+    playSound("audioSetDone");      // ✅ normal sound
+    render();
+    startRestTimer(75);             // start rest for next set
   }
 
   function resetSets() {
