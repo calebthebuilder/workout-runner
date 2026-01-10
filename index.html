@@ -545,7 +545,7 @@
     render();
   }
 
-   function setDone() {
+  function setDone() {
   const list = getExercises();
   const ex = list[idx];
 
@@ -553,13 +553,14 @@
   if (currentSet >= ex.sets) {
     currentSet = ex.sets;
 
-    // 🔥 single clean vibration
+    // single, clean vibration
     if (navigator.vibrate) navigator.vibrate(150);
 
-    // 🔥 play final-set sound every time after completion
+    // play final-set sound EVERY tap after completion
     playSound("audioFinalSet");
 
-    render();
+    // ❌ DO NOT call render() here
+    // Screen + quote stay exactly the same so user knows to hit "Next"
     return;
   }
 
@@ -570,13 +571,10 @@
   if (currentSet === ex.sets) {
     stopRestTimer();
 
-    // 🔥 single vibration
     if (navigator.vibrate) navigator.vibrate(150);
+    playSound("audioFinalSet");   // special final-set sound
 
-    // special final-set sound
-    playSound("audioFinalSet");
-
-    render();
+    render(); // ✅ update UI + quote ONE last time when they truly finish
     return;
   }
 
