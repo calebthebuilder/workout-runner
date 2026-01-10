@@ -54,25 +54,24 @@
     button:active { transform: translateY(1px); }
 
     .footer {
-  margin-top: 6px;
-  display:flex;
-  gap:8px;
-  justify-content:space-between;
-}
+      margin-top: 6px;
+      display:flex;
+      gap:8px;
+      justify-content:space-between;
+    }
     .footer button {
-  flex: 1;
-  min-width: 0;
-  padding:10px 12px;
-  font-size:14px;
-  border-radius:10px;
-}
+      flex: 1;
+      min-width: 0;
+      padding:10px 12px;
+      font-size:14px;
+      border-radius:10px;
+    }
 
     .mini { font-size: 12px; color:#b8c7da; margin-top: 10px; line-height: 1.35; }
     .setline { font-variant-numeric: tabular-nums; font-weight: 900; }
     .plan { margin-top:10px; font-size:12px; color:#b8c7da; line-height:1.5; }
     .plan b { color:#e8eef6; }
     .warn { display:none; margin-top:8px; color:#ffb4b4; font-size:12px; }
-
 
     .top-timer-row {
       display:flex;
@@ -96,15 +95,14 @@
       border-color:#355b8f;
     }
 
-
-button.ghost {
-  background:#0f1722;
-  border-color:#2b3f56;
-  color:#b8c7da;
-}
-button.ghost:active {
-  transform: translateY(1px);
-}
+    button.ghost {
+      background:#0f1722;
+      border-color:#2b3f56;
+      color:#b8c7da;
+    }
+    button.ghost:active {
+      transform: translateY(1px);
+    }
 
     .quote {
       margin-top: 10px;
@@ -137,7 +135,6 @@ button.ghost:active {
           <button class="mini-action" id="btnStartRest">Start</button>
         </div>
       </div>
-      
     </div>
 
     <div class="tabs">
@@ -191,8 +188,14 @@ button.ghost:active {
     </div>
   </div>
 
-<script>
+  <!-- AUDIO ELEMENTS -->
+  <audio id="audioIntro" src="intro.mp3"></audio>
+  <audio id="audioSetDone" src="set-done.mp3"></audio>
+  <audio id="audioRestComplete" src="rest-complete.mp3"></audio>
+  <audio id="audioWorkoutComplete" src="workout-complete.mp3"></audio>
+  <audio id="audioSwipe" src="swipe.mp3"></audio>
 
+<script>
   const QUOTES = [
     "Every workout is a step forward.",
     "You miss 100% of the shots you don’t take.",
@@ -297,33 +300,33 @@ button.ghost:active {
   ];
 
   // --- Quotes: no repeats until all are used ---
-let _quoteBag = [];
-let _lastQuote = null;
+  let _quoteBag = [];
+  let _lastQuote = null;
 
-function _shuffle(arr) {
-  // Fisher–Yates shuffle
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+  function _shuffle(arr) {
+    // Fisher–Yates shuffle
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
-  return arr;
-}
 
-function _refillQuoteBag() {
-  _quoteBag = _shuffle([...QUOTES]);
-  // avoid the first quote after refill matching the previous quote (small UX polish)
-  if (_lastQuote && _quoteBag.length > 1 && _quoteBag[0] === _lastQuote) {
-    [_quoteBag[0], _quoteBag[1]] = [_quoteBag[1], _quoteBag[0]];
+  function _refillQuoteBag() {
+    _quoteBag = _shuffle([...QUOTES]);
+    // avoid the first quote after refill matching the previous quote (small UX polish)
+    if (_lastQuote && _quoteBag.length > 1 && _quoteBag[0] === _lastQuote) {
+      [_quoteBag[0], _quoteBag[1]] = [_quoteBag[1], _quoteBag[0]];
+    }
   }
-}
 
-function updateQuote() {
-  if (_quoteBag.length === 0) _refillQuoteBag();
-  const q = _quoteBag.shift();
-  _lastQuote = q;
-  const box = document.getElementById("quoteBox");
-  if (box) box.textContent = "“" + q + "”";
-}
+  function updateQuote() {
+    if (_quoteBag.length === 0) _refillQuoteBag();
+    const q = _quoteBag.shift();
+    _lastQuote = q;
+    const box = document.getElementById("quoteBox");
+    if (box) box.textContent = "“" + q + "”";
+  }
 
   // ---------------------------------------
   // DATA: Day 1 + Day 2 + Day 3 (Beginner)
@@ -375,8 +378,7 @@ function updateQuote() {
         { name:"Overhead Cable Triceps Extension", sets:3, reps:"10–12", weight:"30–50 lb",
           notes:"Elbows narrow. Big stretch behind head. Smooth lockout.", img:"overhead-cable-triceps.gif" },
       ]
-    }
-    ,
+    },
     leg1: {
       label: "Leg 1 – Quads & Glutes",
       exercises: [
@@ -424,6 +426,21 @@ function updateQuote() {
 
   const el = (id) => document.getElementById(id);
 
+  // ---------------------------
+  // AUDIO HELPER
+  // ---------------------------
+  function playSound(id) {
+    const a = document.getElementById(id);
+    if (!a) return;
+    try {
+      a.currentTime = 0;
+      a.volume = 0.75; // soft default
+      a.play();
+    } catch (e) {
+      // ignore autoplay/gesture-related errors
+    }
+  }
+
   function fmt(sec) {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
@@ -463,6 +480,7 @@ function updateQuote() {
       if (restSeconds <= 0) {
         clearInterval(restTimerId);
         restTimerId = null;
+        playSound("audioRestComplete"); // ✓ Rest timer finished
         if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
       }
     }, 1000);
@@ -513,6 +531,7 @@ function updateQuote() {
       currentSet = 0;
       render();
     } else {
+      playSound("audioWorkoutComplete"); // ✓ Workout complete
       if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
       alert(`${DAYS[currentDayKey].label} complete ✅`);
     }
@@ -530,6 +549,7 @@ function updateQuote() {
     const ex = list[idx];
 
     if (currentSet < ex.sets) currentSet++;
+    playSound("audioSetDone"); // ✓ Set done
     render();
 
     if (currentSet < ex.sets) {
@@ -563,8 +583,15 @@ function updateQuote() {
   el("btnSetDone").addEventListener("click", () => { startWorkoutTimer(); setDone(); });
   el("btnResetSet").addEventListener("click", resetSets);
 
-  el("btnNext").addEventListener("click", nextExercise);
-  el("btnPrev").addEventListener("click", prevExercise);
+  el("btnNext").addEventListener("click", () => {
+    playSound("audioSwipe"); // ✓ Swipe sound
+    nextExercise();
+  });
+
+  el("btnPrev").addEventListener("click", () => {
+    playSound("audioSwipe"); // ✓ Swipe sound
+    prevExercise();
+  });
 
   const daySel = el("daySelect");
   if (daySel) {
@@ -573,6 +600,11 @@ function updateQuote() {
 
   // Initial render
   render();
+
+  // ✓ App start sound
+  window.addEventListener("load", () => {
+    playSound("audioIntro");
+  });
 </script>
 </body>
 </html>
