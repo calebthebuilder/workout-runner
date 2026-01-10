@@ -545,33 +545,46 @@
     render();
   }
 
-    function setDone() {
-    const list = getExercises();
-    const ex = list[idx];
+   function setDone() {
+  const list = getExercises();
+  const ex = list[idx];
 
-    // CASE 1: Extra taps after all sets are complete
-    if (currentSet >= ex.sets) {
-      if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
-      return; // no sound on extra taps
-    }
+  // CASE 1: Extra taps after all sets are complete
+  if (currentSet >= ex.sets) {
+    currentSet = ex.sets;
 
-    // Increase the set number FIRST
-    currentSet++;
+    // 🔥 single clean vibration
+    if (navigator.vibrate) navigator.vibrate(150);
 
-    // CASE 2: Final set just completed
-    if (currentSet === ex.sets) {
-      stopRestTimer();
-      if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
-      playSound("audioFinalSet");   // 🔥 special final-set sound only
-      render();
-      return;
-    }
+    // 🔥 play final-set sound every time after completion
+    playSound("audioFinalSet");
 
-    // CASE 3: Normal sets (not the last one)
-    playSound("audioSetDone");      // ✅ normal sound
     render();
-    startRestTimer(75);             // start rest for next set
+    return;
   }
+
+  // Increase the set number FIRST
+  currentSet++;
+
+  // CASE 2: Final set just completed
+  if (currentSet === ex.sets) {
+    stopRestTimer();
+
+    // 🔥 single vibration
+    if (navigator.vibrate) navigator.vibrate(150);
+
+    // special final-set sound
+    playSound("audioFinalSet");
+
+    render();
+    return;
+  }
+
+  // CASE 3: Normal sets
+  playSound("audioSetDone");
+  render();
+  startRestTimer(75);
+}
 
   function resetSets() {
     currentSet = 0;
