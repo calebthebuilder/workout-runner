@@ -518,18 +518,58 @@
     }
   }
 
-  function render() {
-    renderTabs();
-    const list = getExercises();
-    const ex = list[idx];
+function render() {
+  renderTabs();
+  const list = getExercises();
+  const ex = list[idx];
 
-    // ensure progress field exists
-    if (typeof ex.doneSets !== "number") ex.doneSets = 0;
+  // ensure progress field exists
+  if (typeof ex.doneSets !== "number") ex.doneSets = 0;
+
+  // Grab layout pieces
+  const exerciseGrid = el("exerciseGrid") || document.querySelector(".grid");
+  const completionView = el("completionView");
+  const row = document.querySelector(".row");
+  const btnSet = el("btnSetDone");
+  const btnReset = el("btnResetSet");
+
+  if (workoutComplete) {
+    // ✅ SHOW COMPLETION SCREEN
+
+    // Swap main views
+    if (exerciseGrid) exerciseGrid.style.display = "none";
+    if (completionView) completionView.style.display = "block";
+
+    // Hide exercise-specific UI
+    if (el("exImg")) el("exImg").style.display = "none";
+    if (el("imgErr")) el("imgErr").style.display = "none";
+    if (el("quoteBox")) el("quoteBox").style.display = "none";
+    if (el("exName")) el("exName").style.display = "none";
+    if (el("exNotes")) el("exNotes").style.display = "none";
+    if (row) row.style.display = "none";
+    if (btnSet) btnSet.style.display = "none";
+    if (btnReset) btnReset.style.display = "none";
+
+  } else {
+    // ✅ NORMAL EXERCISE VIEW
+
+    // Swap main views
+    if (exerciseGrid) exerciseGrid.style.display = "grid";
+    if (completionView) completionView.style.display = "none";
+
+    // Show exercise UI
+    if (el("quoteBox")) el("quoteBox").style.display = "block";
+    if (el("exName")) el("exName").style.display = "block";
+    if (el("exNotes")) el("exNotes").style.display = "block";
+    if (row) row.style.display = "flex";
+    if (btnSet) btnSet.style.display = "inline-block";
+    if (btnReset) btnReset.style.display = "inline-block";
 
     // reset image error
     el("imgErr").style.display = "none";
     el("exImg").style.display = "block";
 
+    // Fill in exercise details
     el("exName").textContent = `${idx + 1}/${list.length}: ${ex.name}`;
     el("exNotes").textContent = ex.notes;
     el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
@@ -538,49 +578,77 @@
 
     el("exImg").src = "./" + ex.img;
 
-    // Plan list with completion checkmarks
-    el("planList").innerHTML = list
-      .map((w, i) => {
-        if (typeof w.doneSets !== "number") w.doneSets = 0;
-        const isCurrent = i === idx;
-        const isComplete = w.doneSets >= w.sets;
-        let marker = "•";
-        if (isComplete && isCurrent) marker = "✅👉";
-        else if (isComplete) marker = "✅";
-        else if (isCurrent) marker = "👉";
-        return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
-      })
-      .join("<br>");
-
-    // Next button color based on completion
-    const nextBtn = el("btnNext");
-    if (ex.doneSets >= ex.sets) {
-      nextBtn.classList.add("next-ready");
-    } else {
-      nextBtn.classList.remove("next-ready");
-    }
-
+    // Only bother updating motivation when we’re in normal mode
     updateQuote();
   }
 
-  function nextExercise() {
-    stopRestTimer();
-    const list = getExercises();
-    if (idx < list.length - 1) {
-      idx++;
-      render();
-    } else {
-      playSound("audioWorkoutComplete");
-      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
-      alert(`${DAYS[currentDayKey].label} complete ✅`);
-    }
-  }
+  // Plan list with completion checkmarks (always visible)
+  el("planList").innerHTML = list
+    .map((w, i) => {
+      if (typeof w.doneSets !== "number") w.doneSets = 0;
+      const isCurrent = i === idx;
+      const isComplete = w.doneSets >= w.sets;
+      let marker = "•";
+      if (isComplete && isCurrent) marker = "✅👉";
+      else if (isComplete) marker = "✅";
+      else if (isCurrent) marker = "👉";
+      return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
+    })
+    .join("<br>");
 
-  function prevExercise() {
-    stopRestTimer();
-    idx = Math.max(idx - 1, 0);
+  // Next button color based on completion of current exercise
+  const nextBtn = el("btnNext");
+  if (ex.doneSets >= ex.sets) {
+    nextBtn.classList.add("next-ready");
+  } else {
+    nextBtn.classList.remove("next-ready");
+  }
+}
+
+
+  function nextExercise() {
+  stopRestTimer();
+
+  // reset Next button color when moving to a new exercise
+  el("btnNext").classList.remove("next-ready");
+
+  const list = getExercises();
+  if (idx < list.length - 1) {
+    // Normal move to next exercise
+    workoutComplete = false;
+    idx++;
+    render();
+  } else {
+    // LAST exercise → show completion screen instead of popup
+    workoutComplete = true;
+
+    playSound("audioWorkoutComplete"); // still plays your old completion sound
+    if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
+
+    // Optional: also play the visible completion audio clip
+    const ca = el("completionAudio");
+    if (ca) {
+      try {
+        ca.currentTime = 0;
+        ca.play();
+      } catch (e) {
+        // ignore autoplay errors
+      }
+    }
+
     render();
   }
+}
+
+function prevExercise() {
+  stopRestTimer();
+
+  // If we’re on the completion screen, exit it
+  workoutComplete = false;
+
+  idx = Math.max(idx - 1, 0);
+  render();
+}
 
   function setDone() {
     const list = getExercises();
@@ -624,13 +692,16 @@
     render();
   }
 
-  function switchDay(dayKey) {
-    currentDayKey = dayKey;
-    idx = 0;
-    stopRestTimer();
-    resetWorkoutTimer();
-    render();
-  }
+ function switchDay(dayKey) {
+  currentDayKey = dayKey;
+  idx = 0;
+  workoutComplete = false;
+  stopRestTimer();
+  resetWorkoutTimer();
+  el("btnNext").classList.remove("next-ready");
+  render();
+}
+
 
   // ---------------------------
   // EVENTS
