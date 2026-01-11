@@ -360,6 +360,16 @@
     "./award6.png",
     "./award7.png"
   ];
+  
+  let _awardBag = [];
+
+  function pickAwardImage() {
+    // Refill + shuffle when empty
+    if (_awardBag.length === 0) {
+      _awardBag = _shuffle([...COMPLETION_IMAGES]);
+    }
+    return _awardBag.shift();
+  }
 
   // ---------------------------------------
   // DATA: Days + Exercises
@@ -634,7 +644,7 @@ function render() {
   }
 }
 
-  function nextExercise() {
+    function nextExercise() {
     stopRestTimer();
 
     // reset Next button color when moving to a new exercise
@@ -650,11 +660,14 @@ function render() {
       // LAST exercise → show completion screen instead of popup
       workoutComplete = true;
 
-      // Pick a random award image
+      // Pick a random award image (no repeats until all are used)
       const img = el("completionImg");
       if (img && COMPLETION_IMAGES.length > 0) {
-        const index = Math.floor(Math.random() * COMPLETION_IMAGES.length);
-        img.src = COMPLETION_IMAGES[index];
+        const src = pickAwardImage();
+
+        // cache-bust so browser doesn’t “stick” to an old one
+        img.src = src + "?v=" + Math.random();
+        // console.log("Award picked:", src); // optional debug
       }
 
       playSound("audioWorkoutComplete"); // still plays your old completion sound
@@ -674,6 +687,7 @@ function render() {
       render();
     }
   }
+
 
 
 function prevExercise() {
