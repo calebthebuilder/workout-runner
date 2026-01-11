@@ -194,7 +194,8 @@
              alt="Workout complete"
              style="width:100%; height:auto; border-radius:16px; margin-bottom:12px; display:block;">
 
-        <audio id="completionAudio" src="./workout-complete.mp3"></audio>
+        <!-- This audio element’s src will be set dynamically to a random completion sound -->
+        <audio id="completionAudio"></audio>
       </div>
 
       <div class="controls">
@@ -221,6 +222,7 @@
   <audio id="audioIntro" src="intro.mp3"></audio>
   <audio id="audioSetDone" src="set-done.mp3"></audio>
   <audio id="audioRestComplete" src="rest-complete.mp3"></audio>
+  <!-- audioWorkoutComplete is no longer used, but kept in case you want it later -->
   <audio id="audioWorkoutComplete" src="workout-complete.mp3"></audio>
   <audio id="audioSwipe" src="swipe.mp3"></audio>
   <audio id="audioFinalSet" src="final-set.mp3"></audio>
@@ -357,7 +359,7 @@
   }
 
   // ---------------------------------------
-  // COMPLETION AWARD IMAGES
+  // COMPLETION AWARD IMAGES (PNG)
   // ---------------------------------------
   const COMPLETION_IMAGES = [
     "./award1.png",
@@ -376,6 +378,28 @@
       _awardBag = _shuffle([...COMPLETION_IMAGES]);
     }
     return _awardBag.shift();
+  }
+
+  // ---------------------------------------
+  // COMPLETION SOUNDS (MP3) – RANDOM, NO REPEATS
+  // ---------------------------------------
+  const COMPLETION_SOUNDS = [
+    "./workout-complete1.mp3",
+    "./workout-complete2.mp3",
+    "./workout-complete3.mp3",
+    "./workout-complete4.mp3",
+    "./workout-complete5.mp3",
+    "./workout-complete6.mp3",
+    "./workout-complete7.mp3"
+  ];
+
+  let _soundBag = [];
+
+  function pickCompletionSound() {
+    if (_soundBag.length === 0) {
+      _soundBag = _shuffle([...COMPLETION_SOUNDS]);
+    }
+    return _soundBag.shift();
   }
 
   // ---------------------------------------
@@ -679,18 +703,23 @@
         img.src = src + "?v=" + Math.random();
       }
 
-      playSound("audioWorkoutComplete");
-      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
-
+      // Pick a random completion sound (no repeats until all are used)
       const ca = el("completionAudio");
-      if (ca) {
+      if (ca && COMPLETION_SOUNDS.length > 0) {
         try {
+          const soundSrc = pickCompletionSound();
+          ca.pause();
           ca.currentTime = 0;
+          ca.src = soundSrc + "?v=" + Math.random();
+          ca.volume = 0.3;
           ca.play();
         } catch (e) {
           // ignore autoplay errors
         }
       }
+
+      // Vibrate pattern for "big finish"
+      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
 
       render();
     }
