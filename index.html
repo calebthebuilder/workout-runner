@@ -154,8 +154,9 @@
       </select>
     </div>
 
-    <div class="card">
-      <div class="grid">
+<div class="card">
+      <!-- Normal exercise view -->
+      <div class="grid" id="exerciseGrid">
         <div>
           <img class="thumb" id="exImg" alt="exercise image"
                onerror="this.style.display='none'; document.getElementById('imgErr').style.display='block';" />
@@ -175,6 +176,19 @@
         </div>
       </div>
 
+      <!-- NEW: Workout complete view (uses same container) -->
+      <div id="completionView"
+           style="display:none; text-align:center; padding:16px 8px;">
+        <!-- Put whatever picture you want here -->
+        <img src="./workout-complete.png"
+             alt="Workout complete"
+             class="thumb"
+             style="max-width:220px; border-radius:16px; margin-bottom:12px;">
+
+        <!-- Audio clip shown instead of popup -->
+        <audio id="completionAudio" src="./workout-complete.mp3"></audio>
+      </div>
+
       <div class="controls">
         <button id="btnSetDone">Set Done</button>
         <button class="danger" id="btnResetSet">Reset Sets</button>
@@ -192,6 +206,7 @@
 
       <div class="plan" id="planList"></div>
     </div>
+
   </div>
 
   <!-- AUDIO ELEMENTS -->
@@ -422,6 +437,8 @@
   let currentDayKey = "day1";
   let idx = 0;
 
+  let workoutComplete = false;
+  
   let workoutStart = null;
   let workoutTimerId = null;
 
