@@ -311,7 +311,6 @@
   let _lastQuote = null;
 
   function _shuffle(arr) {
-    // Fisher–Yates shuffle
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -321,7 +320,6 @@
 
   function _refillQuoteBag() {
     _quoteBag = _shuffle([...QUOTES]);
-    // avoid the first quote after refill matching the previous quote (small UX polish)
     if (_lastQuote && _quoteBag.length > 1 && _quoteBag[0] === _lastQuote) {
       [_quoteBag[0], _quoteBag[1]] = [_quoteBag[1], _quoteBag[0]];
     }
@@ -336,7 +334,7 @@
   }
 
   // ---------------------------------------
-  // DATA: Day 1 + Day 2 + Day 3 (Beginner)
+  // DATA: Days + Exercises
   // ---------------------------------------
   const DAYS = {
     day1: {
@@ -423,7 +421,6 @@
   // ---------------------------
   let currentDayKey = "day1";
   let idx = 0;
-  let currentSet = 0;
 
   let workoutStart = null;
   let workoutTimerId = null;
@@ -441,7 +438,7 @@
     if (!a) return;
     try {
       a.currentTime = 0;
-      a.volume = 0.05; // soft default
+      a.volume = 0.05;
       a.play();
     } catch (e) {
       // ignore autoplay/gesture-related errors
@@ -487,7 +484,7 @@
       if (restSeconds <= 0) {
         clearInterval(restTimerId);
         restTimerId = null;
-        playSound("audioRestComplete"); // ✓ Rest timer finished
+        playSound("audioRestComplete");
         if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
       }
     }, 1000);
@@ -509,6 +506,9 @@
     const list = getExercises();
     const ex = list[idx];
 
+    // ensure progress field exists
+    if (typeof ex.doneSets !== "number") ex.doneSets = 0;
+
     // reset image error
     el("imgErr").style.display = "none";
     el("exImg").style.display = "block";
@@ -517,32 +517,43 @@
     el("exNotes").textContent = ex.notes;
     el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
     el("exWeight").textContent = ex.weight;
-    el("exSetTracker").textContent = `Set ${currentSet}/${ex.sets}`;
+    el("exSetTracker").textContent = `Set ${ex.doneSets}/${ex.sets}`;
 
-    // use explicit relative path
     el("exImg").src = "./" + ex.img;
 
-    el("planList").innerHTML = list.map((w, i) => {
-      const marker = (i === idx) ? "👉" : "•";
-      return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
-    }).join("<br>");
+    // Plan list with completion checkmarks
+    el("planList").innerHTML = list
+      .map((w, i) => {
+        if (typeof w.doneSets !== "number") w.doneSets = 0;
+        const isCurrent = i === idx;
+        const isComplete = w.doneSets >= w.sets;
+        let marker = "•";
+        if (isComplete && isCurrent) marker = "✅👉";
+        else if (isComplete) marker = "✅";
+        else if (isCurrent) marker = "👉";
+        return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
+      })
+      .join("<br>");
+
+    // Next button color based on completion
+    const nextBtn = el("btnNext");
+    if (ex.doneSets >= ex.sets) {
+      nextBtn.classList.add("next-ready");
+    } else {
+      nextBtn.classList.remove("next-ready");
+    }
 
     updateQuote();
   }
 
-    function nextExercise() {
+  function nextExercise() {
     stopRestTimer();
-
-    // reset Next button color when moving to a new exercise
-    el("btnNext").classList.remove("next-ready");
-
     const list = getExercises();
     if (idx < list.length - 1) {
       idx++;
-      currentSet = 0;
       render();
     } else {
-      playSound("audioWorkoutComplete"); // ✓ Workout complete
+      playSound("audioWorkoutComplete");
       if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
       alert(`${DAYS[currentDayKey].label} complete ✅`);
     }
@@ -551,7 +562,6 @@
   function prevExercise() {
     stopRestTimer();
     idx = Math.max(idx - 1, 0);
-    currentSet = 0;
     render();
   }
 
@@ -560,52 +570,38 @@
     const ex = list[idx];
     const nextBtn = el("btnNext");
 
-    // CASE 1: Extra taps after all sets are complete
-    if (currentSet >= ex.sets) {
-      currentSet = ex.sets;
+    if (typeof ex.doneSets !== "number") ex.doneSets = 0;
 
-      // single, clean vibration
+    // Extra taps after all sets complete
+    if (ex.doneSets >= ex.sets) {
       if (navigator.vibrate) navigator.vibrate(150);
-
-      // play final-set sound EVERY tap after completion
       playSound("audioFinalSet");
-
-      // keep Next button green to lead them forward
       nextBtn.classList.add("next-ready");
-
-      // ❌ DO NOT call render() here
-      // Screen + quote stay exactly the same so user knows to hit "Next"
       return;
     }
 
-    // Increase the set number FIRST
-    currentSet++;
+    // Log one more set
+    ex.doneSets++;
 
-    // CASE 2: Final set just completed
-    if (currentSet === ex.sets) {
+    // Final set just completed
+    if (ex.doneSets >= ex.sets) {
       stopRestTimer();
-
       if (navigator.vibrate) navigator.vibrate(150);
-      playSound("audioFinalSet");   // special final-set sound
-
-      // turn Next button green
+      playSound("audioFinalSet");
       nextBtn.classList.add("next-ready");
-
-      render(); // ✅ update UI + quote ONE last time when they truly finish
-      return;
+    } else {
+      nextBtn.classList.remove("next-ready");
+      playSound("audioSetDone");
+      startRestTimer(75);
     }
 
-    // CASE 3: Normal sets
-    // make sure Next stays normal color during working sets
-    nextBtn.classList.remove("next-ready");
-
-    playSound("audioSetDone");
     render();
-    startRestTimer(75);
   }
 
   function resetSets() {
-    currentSet = 0;
+    const list = getExercises();
+    const ex = list[idx];
+    ex.doneSets = 0;
     stopRestTimer();
     el("btnNext").classList.remove("next-ready");
     render();
@@ -614,10 +610,8 @@
   function switchDay(dayKey) {
     currentDayKey = dayKey;
     idx = 0;
-    currentSet = 0;
     stopRestTimer();
     resetWorkoutTimer();
-    el("btnNext").classList.remove("next-ready");
     render();
   }
 
@@ -630,12 +624,12 @@
   el("btnResetSet").addEventListener("click", resetSets);
 
   el("btnNext").addEventListener("click", () => {
-    playSound("audioSwipe"); // ✓ Swipe sound
+    playSound("audioSwipe");
     nextExercise();
   });
 
   el("btnPrev").addEventListener("click", () => {
-    playSound("audioSwipe"); // ✓ Swipe sound
+    playSound("audioSwipe");
     prevExercise();
   });
 
@@ -647,7 +641,7 @@
   // Initial render
   render();
 
-  // ✓ App start sound
+  // App start sound
   window.addEventListener("load", () => {
     playSound("audioIntro");
   });
