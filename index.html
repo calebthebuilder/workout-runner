@@ -121,6 +121,17 @@
       line-height: 1.35;
       border-radius: 8px;
     }
+
+    /* Completion award fade-in */
+    .award-img {
+      opacity: 0;
+      transform: scale(0.96);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .award-img.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
   </style>
 </head>
 
@@ -154,7 +165,7 @@
       </select>
     </div>
 
-<div class="card">
+    <div class="card">
       <!-- Normal exercise view -->
       <div class="grid" id="exerciseGrid">
         <div>
@@ -176,17 +187,15 @@
         </div>
       </div>
 
-      <!-- NEW: Workout complete view (uses same container) -->
+      <!-- Workout complete view (uses same container) -->
       <div id="completionView"
            style="display:none; text-align:center; padding:16px 8px;">
-        <!-- Put whatever picture you want here -->
         <img id="completionImg"
-     src="./workout-complete.png"
-     alt="Workout complete"
-     style="width:100%; height:auto; border-radius:16px; margin-bottom:12px; display:block;">
+             class="award-img"
+             src="./workout-complete.png"
+             alt="Workout complete"
+             style="width:100%; height:auto; border-radius:16px; margin-bottom:12px; display:block;">
 
-
-        <!-- Audio clip shown instead of popup -->
         <audio id="completionAudio" src="./workout-complete.mp3"></audio>
       </div>
 
@@ -348,6 +357,7 @@
     const box = document.getElementById("quoteBox");
     if (box) box.textContent = "“" + q + "”";
   }
+
   // ---------------------------------------
   // COMPLETION AWARD IMAGES
   // ---------------------------------------
@@ -541,110 +551,110 @@
     }
   }
 
-function render() {
-  renderTabs();
-  const list = getExercises();
-  const ex = list[idx];
+  function render() {
+    renderTabs();
+    const list = getExercises();
+    const ex = list[idx];
 
-  // ensure progress field exists
-  if (typeof ex.doneSets !== "number") ex.doneSets = 0;
+    // ensure progress field exists
+    if (typeof ex.doneSets !== "number") ex.doneSets = 0;
 
-  // Grab layout pieces
-  const exerciseGrid = el("exerciseGrid") || document.querySelector(".grid");
-  const completionView = el("completionView");
-  const row = document.querySelector(".row");
-  const btnSet = el("btnSetDone");
-  const btnReset = el("btnResetSet");
-  const rulesBox = document.querySelector(".mini");
+    // Grab layout pieces
+    const exerciseGrid = el("exerciseGrid") || document.querySelector(".grid");
+    const completionView = el("completionView");
+    const row = document.querySelector(".row");
+    const btnSet = el("btnSetDone");
+    const btnReset = el("btnResetSet");
+    const rulesBox = document.querySelector(".mini");
 
-  if (workoutComplete) {
-    // --- SHOW COMPLETION SCREEN ---
-    if (exerciseGrid) exerciseGrid.style.display = "none";
-    if (completionView) completionView.style.display = "block";
+    if (workoutComplete) {
+      // --- SHOW COMPLETION SCREEN ---
+      if (exerciseGrid) exerciseGrid.style.display = "none";
+      if (completionView) completionView.style.display = "block";
 
-    // Hide exercise-only UI
-    if (el("exImg")) el("exImg").style.display = "none";
-    if (el("imgErr")) el("imgErr").style.display = "none";
-    if (el("quoteBox")) el("quoteBox").style.display = "none";
-    if (el("exName")) el("exName").style.display = "none";
-    if (el("exNotes")) el("exNotes").style.display = "none";
-    if (row) row.style.display = "none";
-    if (btnSet) btnSet.style.display = "none";
-    if (btnReset) btnReset.style.display = "none";
+      // Hide exercise-only UI
+      if (el("exImg")) el("exImg").style.display = "none";
+      if (el("imgErr")) el("imgErr").style.display = "none";
+      if (el("quoteBox")) el("quoteBox").style.display = "none";
+      if (el("exName")) el("exName").style.display = "none";
+      if (el("exNotes")) el("exNotes").style.display = "none";
+      if (row) row.style.display = "none";
+      if (btnSet) btnSet.style.display = "none";
+      if (btnReset) btnReset.style.display = "none";
 
-    // Hide Prev/Next buttons
-    if (el("btnPrev")) el("btnPrev").style.display = "none";
-    if (el("btnNext")) el("btnNext").style.display = "none";
+      // Hide Prev/Next buttons
+      if (el("btnPrev")) el("btnPrev").style.display = "none";
+      if (el("btnNext")) el("btnNext").style.display = "none";
 
-    // Hide the checklist
-    if (el("planList")) el("planList").style.display = "none";
+      // Hide the checklist
+      if (el("planList")) el("planList").style.display = "none";
 
-    // Hide Rules / Progress mini box
-    if (rulesBox) rulesBox.style.display = "none";
+      // Hide Rules / Progress mini box
+      if (rulesBox) rulesBox.style.display = "none";
 
-  } else {
-    // --- NORMAL EXERCISE VIEW ---
-    if (exerciseGrid) exerciseGrid.style.display = "grid";
-    if (completionView) completionView.style.display = "none";
+    } else {
+      // --- NORMAL EXERCISE VIEW ---
+      if (exerciseGrid) exerciseGrid.style.display = "grid";
+      if (completionView) completionView.style.display = "none";
 
-    // Show exercise UI again
-    if (el("quoteBox")) el("quoteBox").style.display = "block";
-    if (el("exName")) el("exName").style.display = "block";
-    if (el("exNotes")) el("exNotes").style.display = "block";
-    if (row) row.style.display = "flex";
-    if (btnSet) btnSet.style.display = "inline-block";
-    if (btnReset) btnReset.style.display = "inline-block";
+      // Show exercise UI again
+      if (el("quoteBox")) el("quoteBox").style.display = "block";
+      if (el("exName")) el("exName").style.display = "block";
+      if (el("exNotes")) el("exNotes").style.display = "block";
+      if (row) row.style.display = "flex";
+      if (btnSet) btnSet.style.display = "inline-block";
+      if (btnReset) btnReset.style.display = "inline-block";
 
-    // Show Prev/Next
-    if (el("btnPrev")) el("btnPrev").style.display = "inline-block";
-    if (el("btnNext")) el("btnNext").style.display = "inline-block";
+      // Show Prev/Next
+      if (el("btnPrev")) el("btnPrev").style.display = "inline-block";
+      if (el("btnNext")) el("btnNext").style.display = "inline-block";
 
-    // Show checklist
-    if (el("planList")) el("planList").style.display = "block";
+      // Show checklist
+      if (el("planList")) el("planList").style.display = "block";
 
-    // Show Rules / Progress mini box
-    if (rulesBox) rulesBox.style.display = "block";
+      // Show Rules / Progress mini box
+      if (rulesBox) rulesBox.style.display = "block";
 
-    // reset image error
-    el("imgErr").style.display = "none";
-    el("exImg").style.display = "block";
+      // reset image error
+      el("imgErr").style.display = "none";
+      el("exImg").style.display = "block";
 
-    // Fill in exercise details
-    el("exName").textContent = `${idx + 1}/${list.length}: ${ex.name}`;
-    el("exNotes").textContent = ex.notes;
-    el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
-    el("exWeight").textContent = ex.weight;
-    el("exSetTracker").textContent = `Set ${ex.doneSets}/${ex.sets}`;
+      // Fill in exercise details
+      el("exName").textContent = `${idx + 1}/${list.length}: ${ex.name}`;
+      el("exNotes").textContent = ex.notes;
+      el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
+      el("exWeight").textContent = ex.weight;
+      el("exSetTracker").textContent = `Set ${ex.doneSets}/${ex.sets}`;
 
-    el("exImg").src = "./" + ex.img;
+      el("exImg").src = "./" + ex.img;
 
-    updateQuote();
+      updateQuote();
+    }
+
+    // Plan list with completion checkmarks (data always kept in sync)
+    el("planList").innerHTML = list
+      .map((w, i) => {
+        if (typeof w.doneSets !== "number") w.doneSets = 0;
+        const isCurrent = i === idx;
+        const isComplete = w.doneSets >= w.sets;
+        let marker = "•";
+        if (isComplete && isCurrent) marker = "✅👉";
+        else if (isComplete) marker = "✅";
+        else if (isCurrent) marker = "👉";
+        return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
+      })
+      .join("<br>");
+
+    // Next button color based on completion of current exercise
+    const nextBtn = el("btnNext");
+    if (ex.doneSets >= ex.sets) {
+      nextBtn.classList.add("next-ready");
+    } else {
+      nextBtn.classList.remove("next-ready");
+    }
   }
 
-  // Plan list with completion checkmarks (data always kept in sync)
-  el("planList").innerHTML = list
-    .map((w, i) => {
-      if (typeof w.doneSets !== "number") w.doneSets = 0;
-      const isCurrent = i === idx;
-      const isComplete = w.doneSets >= w.sets;
-      let marker = "•";
-      if (isComplete && isCurrent) marker = "✅👉";
-      else if (isComplete) marker = "✅";
-      else if (isCurrent) marker = "👉";
-      return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
-    })
-    .join("<br>");
-
-  // Next button color based on completion of current exercise
-  const nextBtn = el("btnNext");
-  if (ex.doneSets >= ex.sets) {
-    nextBtn.classList.add("next-ready");
-  } else {
-    nextBtn.classList.remove("next-ready");
-  }
-}
-
-    function nextExercise() {
+  function nextExercise() {
     stopRestTimer();
 
     // reset Next button color when moving to a new exercise
@@ -660,18 +670,22 @@ function render() {
       // LAST exercise → show completion screen instead of popup
       workoutComplete = true;
 
-      // Pick a random award image (no repeats until all are used)
+      playSound("audioWorkoutComplete");
+      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
+
+      // Switch to completion view
+      render();
+
+      // Pick a random award image (no repeats until bag empties), then fade it in
       const img = el("completionImg");
       if (img && COMPLETION_IMAGES.length > 0) {
         const src = pickAwardImage();
 
-        // cache-bust so browser doesn’t “stick” to an old one
-        img.src = src + "?v=" + Math.random();
-        // console.log("Award picked:", src); // optional debug
+        img.classList.remove("visible");          // reset fade state
+        img.src = src + "?v=" + Math.random();    // cache-bust
+        void img.offsetWidth;                     // force reflow
+        img.classList.add("visible");             // trigger fade+scale
       }
-
-      playSound("audioWorkoutComplete"); // still plays your old completion sound
-      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
 
       // Optional: also play the visible completion audio clip
       const ca = el("completionAudio");
@@ -683,22 +697,18 @@ function render() {
           // ignore autoplay errors
         }
       }
-
-      render();
     }
   }
 
+  function prevExercise() {
+    stopRestTimer();
 
+    // If we’re on the completion screen, exit it
+    workoutComplete = false;
 
-function prevExercise() {
-  stopRestTimer();
-
-  // If we’re on the completion screen, exit it
-  workoutComplete = false;
-
-  idx = Math.max(idx - 1, 0);
-  render();
-}
+    idx = Math.max(idx - 1, 0);
+    render();
+  }
 
   function setDone() {
     const list = getExercises();
@@ -742,16 +752,15 @@ function prevExercise() {
     render();
   }
 
- function switchDay(dayKey) {
-  currentDayKey = dayKey;
-  idx = 0;
-  workoutComplete = false;
-  stopRestTimer();
-  resetWorkoutTimer();
-  el("btnNext").classList.remove("next-ready");
-  render();
-}
-
+  function switchDay(dayKey) {
+    currentDayKey = dayKey;
+    idx = 0;
+    workoutComplete = false;
+    stopRestTimer();
+    resetWorkoutTimer();
+    el("btnNext").classList.remove("next-ready");
+    render();
+  }
 
   // ---------------------------
   // EVENTS
