@@ -248,10 +248,10 @@
   <audio id="quoteAudio"></audio>
   
 <script>
+   // ---------------------------
+  // QUOTES (text + mp3 mapping)
   // ---------------------------
-  // QUOTES (simple string list)
-  // ---------------------------
-  const QUOTES = [
+  const QUOTE_TEXTS = [
     /* 1 */ "Every workout is a step forward.",
     /* 2 */ "You miss 100% of the shots you don't take.",
     /* 3 */ "Your limits are all in your mind.",
@@ -354,6 +354,12 @@
     /* 100 */ "One more set. One more step."
   ];
 
+  // Map each quote to an object { text, audio: "quoteN.mp3" }
+  const QUOTES = QUOTE_TEXTS.map((text, index) => ({
+    text,
+    audio: `quote${index + 1}.mp3`
+  }));
+
   // --- Quotes: random, no repeats until all are used ---
   let _quoteBag = [];
   let _lastQuote = null;
@@ -373,37 +379,35 @@
     }
   }
 
+  // Play the quote's mp3 via <audio id="quoteAudio">
+  function playQuoteAudio(src) {
+    if (!src) return;
+    const audioEl = document.getElementById("quoteAudio");
+    if (!audioEl) return;
+    try {
+      audioEl.pause();
+      audioEl.currentTime = 0;
+      audioEl.src = src;            // if you put files in /quotes, use "./quotes/" + src instead
+      audioEl.volume = 0.3;
+      audioEl.play();
+    } catch (e) {
+      // ignore autoplay / permission issues
+    }
+  }
+
   function updateQuote() {
     if (_quoteBag.length === 0) _refillQuoteBag();
-    const text = _quoteBag.shift();   // string
-    _lastQuote = text;
+    const q = _quoteBag.shift();   // q is { text, audio }
+    _lastQuote = q;
     const box = document.getElementById("quoteBox");
-    if (box && text) {
-      box.textContent = "“" + text + "”";
+    if (box && q && q.text) {
+      box.textContent = "“" + q.text + "”";
+    }
+    if (q && q.audio) {
+      playQuoteAudio(q.audio);
     }
   }
 
-  // ---------------------------------------
-  // COMPLETION AWARD IMAGES (PNG)
-  // ---------------------------------------
-  const COMPLETION_IMAGES = [
-    "./award1.png",
-    "./award2.png",
-    "./award3.png",
-    "./award4.png",
-    "./award5.png",
-    "./award6.png",
-    "./award7.png"
-  ];
-
-  let _awardBag = [];
-
-  function pickAwardImage() {
-    if (_awardBag.length === 0) {
-      _awardBag = _shuffle([...COMPLETION_IMAGES]);
-    }
-    return _awardBag.shift();
-  }
 
   // ---------------------------------------
   // COMPLETION SOUNDS (MP3) – RANDOM, NO REPEATS
