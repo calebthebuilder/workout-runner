@@ -395,7 +395,7 @@
     }
   }
 
-  function updateQuote() {
+    function updateQuote() {
     if (_quoteBag.length === 0) _refillQuoteBag();
     const q = _quoteBag.shift();   // q is { text, audio }
     _lastQuote = q;
@@ -408,11 +408,33 @@
     }
   }
 
+  // ---------------------------------------
+  // COMPLETION AWARD IMAGES (PNG)
+  // ---------------------------------------
+  const COMPLETION_IMAGES = [
+    "./award1.png",
+    "./award2.png",
+    "./award3.png",
+    "./award4.png",
+    "./award5.png",
+    "./award6.png",
+    "./award7.png"
+  ];
+
+  let _awardBag = [];
+
+  function pickAwardImage() {
+    if (_awardBag.length === 0) {
+      _awardBag = _shuffle([...COMPLETION_IMAGES]);
+    }
+    return _awardBag.shift();
+  }
 
   // ---------------------------------------
   // COMPLETION SOUNDS (MP3) – RANDOM, NO REPEATS
   // ---------------------------------------
   const COMPLETION_SOUNDS = [
+
     "./workout-complete1.mp3",
     "./workout-complete2.mp3",
     "./workout-complete3.mp3",
