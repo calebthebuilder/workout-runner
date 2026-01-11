@@ -12,9 +12,21 @@
     .pill { background:#141c26; border:1px solid #243446; padding:10px 12px; border-radius:999px; }
     .time { font-variant-numeric: tabular-nums; font-weight:900; letter-spacing:0.5px; }
     .big { font-size: 20px; }
-    .badge { display:inline-block; padding:6px 10px; border-radius:999px; border:1px solid #2b3f56; background:#141c26; font-size: 12px; color:#b8c7da; }
 
     .tabs { display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
+    .day-select {
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid #2b3f56;
+      background:#152235;
+      color:#e8eef6;
+      font-weight:600;
+      font-size:14px;
+    }
+    .day-select:focus {
+      outline:none;
+      border-color:#355b8f;
+    }
     .tabbtn{
       border-radius:999px; padding:10px 12px; border:1px solid #2b3f56;
       background:#152235; color:#e8eef6; font-weight:900; cursor:pointer;
@@ -41,14 +53,62 @@
     button.danger { background:#3a1c22; border-color:#6a2a35; }
     button:active { transform: translateY(1px); }
 
-    .footer { margin-top: 12px; display:flex; gap:10px; flex-wrap:wrap; }
-    .footer button { flex: 1; min-width: 150px; }
+    .footer {
+      margin-top: 6px;
+      display:flex;
+      gap:8px;
+      justify-content:space-between;
+    }
+    .footer button {
+      flex: 1;
+      min-width: 0;
+      padding:10px 12px;
+      font-size:14px;
+      border-radius:10px;
+    }
 
     .mini { font-size: 12px; color:#b8c7da; margin-top: 10px; line-height: 1.35; }
     .setline { font-variant-numeric: tabular-nums; font-weight: 900; }
     .plan { margin-top:10px; font-size:12px; color:#b8c7da; line-height:1.5; }
     .plan b { color:#e8eef6; }
     .warn { display:none; margin-top:8px; color:#ffb4b4; font-size:12px; }
+
+    .top-timer-row {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:4px;
+    }
+    .mini-action {
+      width:auto;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #2b3f56;
+      background:#152235;
+      color:#e8eef6;
+      font-weight:700;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .mini-action.primary {
+      background:#1f3b63;
+      border-color:#355b8f;
+    }
+
+    button.ghost {
+      background:#0f1722;
+      border-color:#2b3f56;
+      color:#b8c7da;
+    }
+    button.ghost:active {
+      transform: translateY(1px);
+    }
+
+    .next-ready {
+      background: #1f8f4a !important;
+      border-color: #29b15c !important;
+      color: #ffffff !important;
+    }
 
     .quote {
       margin-top: 10px;
@@ -61,6 +121,33 @@
       line-height: 1.35;
       border-radius: 8px;
     }
+
+    /* Award image animation: scale + fade over ~5s */
+    .award-img {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    .award-img.animate-in {
+      animation: awardIn 5s ease-out forwards;
+    }
+    @keyframes awardIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.6);
+      }
+      30% {
+        opacity: 1;
+        transform: scale(1.05);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(0.98);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
   </style>
 </head>
 
@@ -69,23 +156,34 @@
     <div class="top">
       <div class="pill">
         <div class="muted">Workout</div>
-        <div class="time big" id="workoutTime">0:00</div>
+        <div class="top-timer-row">
+          <div class="time big" id="workoutTime">0:00</div>
+          <button class="mini-action primary" id="btnStartWorkout">Start</button>
+        </div>
       </div>
       <div class="pill">
         <div class="muted">Rest</div>
-        <div class="time big" id="restTime">0:00</div>
+        <div class="top-timer-row">
+          <div class="time big" id="restTime">0:00</div>
+          <button class="mini-action" id="btnStartRest">Start</button>
+        </div>
       </div>
-      <span class="badge" id="statusBadge">Ready</span>
     </div>
 
     <div class="tabs">
-      <button class="tabbtn active" id="tabDay1">Day 1 – PUSH</button>
-      <button class="tabbtn" id="tabDay2">Day 2 – PULL</button>
-      <button class="tabbtn" id="tabDay3">Day 3 – SHOULDERS & ARMS</button>
+      <label class="muted" for="daySelect">Day</label>
+      <select id="daySelect" class="day-select">
+        <option value="day1">Upper 1 – Push</option>
+        <option value="day2">Upper 2 – Pull</option>
+        <option value="day3">Upper 3 – Shoulders & Arms</option>
+        <option value="leg1">Leg 1 – Quads & Glutes</option>
+        <option value="leg2">Leg 2 – Posterior Chain</option>
+      </select>
     </div>
 
     <div class="card">
-      <div class="grid">
+      <!-- Normal exercise view -->
+      <div class="grid" id="exerciseGrid">
         <div>
           <img class="thumb" id="exImg" alt="exercise image"
                onerror="this.style.display='none'; document.getElementById('imgErr').style.display='block';" />
@@ -105,15 +203,26 @@
         </div>
       </div>
 
+      <!-- Workout complete view -->
+      <div id="completionView"
+           style="display:none; text-align:center; padding:16px 8px;">
+        <img id="completionImg"
+             class="award-img"
+             src=""
+             alt="Workout complete"
+             style="width:100%; height:auto; border-radius:16px; margin-bottom:12px; display:block;">
+
+        <!-- This audio element’s src will be set dynamically to a random completion sound -->
+        <audio id="completionAudio"></audio>
+      </div>
+
       <div class="controls">
-        <button class="primary" id="btnStartWorkout">Start Workout</button>
-        <button id="btnStartRest">Start Rest (75s)</button>
         <button id="btnSetDone">Set Done</button>
         <button class="danger" id="btnResetSet">Reset Sets</button>
       </div>
 
       <div class="footer">
-        <button id="btnPrev">◀ Prev</button>
+        <button id="btnPrev" class="ghost">◀ Prev</button>
         <button id="btnNext" class="primary">Next ▶</button>
       </div>
 
@@ -124,11 +233,23 @@
 
       <div class="plan" id="planList"></div>
     </div>
+
   </div>
 
+  <!-- AUDIO ELEMENTS -->
+  <audio id="audioIntro" src="intro.mp3"></audio>
+  <audio id="audioSetDone" src="set-done.mp3"></audio>
+  <audio id="audioRestComplete" src="rest-complete.mp3"></audio>
+  <!-- audioWorkoutComplete kept but not used by the final screen -->
+  <audio id="audioWorkoutComplete" src="workout-complete.mp3"></audio>
+  <audio id="audioSwipe" src="swipe.mp3"></audio>
+  <audio id="audioFinalSet" src="final-set.mp3"></audio>
+  <!-- NEW: quote audio (src set per quote in JS) -->
+  <audio id="quoteAudio"></audio>
+  
 <script>
-
-  const QUOTES = [
+  // Quote text list
+  const QUOTE_TEXTS = [
     "Every workout is a step forward.",
     "You miss 100% of the shots you don’t take.",
     "Your limits are all in your mind.",
@@ -231,41 +352,110 @@
     "One more set. One more step."
   ];
 
+  // QUOTES now includes text + mapped audio filenames quote1.mp3, quote2.mp3, ...
+  const QUOTES = QUOTE_TEXTS.map((text, index) => ({
+    text,
+    audio: `quote${index + 1}.mp3`
+  }));
+
   // --- Quotes: no repeats until all are used ---
-let _quoteBag = [];
-let _lastQuote = null;
+  let _quoteBag = [];
+  let _lastQuote = null;
 
-function _shuffle(arr) {
-  // Fisher–Yates shuffle
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+  function _shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
-  return arr;
-}
 
-function _refillQuoteBag() {
-  _quoteBag = _shuffle([...QUOTES]);
-  // avoid the first quote after refill matching the previous quote (small UX polish)
-  if (_lastQuote && _quoteBag.length > 1 && _quoteBag[0] === _lastQuote) {
-    [_quoteBag[0], _quoteBag[1]] = [_quoteBag[1], _quoteBag[0]];
+  function _refillQuoteBag() {
+    _quoteBag = _shuffle([...QUOTES]);
+    if (_lastQuote && _quoteBag.length > 1 && _quoteBag[0] === _lastQuote) {
+      [_quoteBag[0], _quoteBag[1]] = [_quoteBag[1], _quoteBag[0]];
+    }
   }
-}
 
-function updateQuote() {
-  if (_quoteBag.length === 0) _refillQuoteBag();
-  const q = _quoteBag.shift();
-  _lastQuote = q;
-  const box = document.getElementById("quoteBox");
-  if (box) box.textContent = "“" + q + "”";
-}
+  // Play the quote's mp3
+  function playQuoteAudio(src) {
+    if (!src) return;
+    const audioEl = document.getElementById("quoteAudio");
+    if (!audioEl) return;
+    try {
+      audioEl.pause();
+      audioEl.currentTime = 0;
+      audioEl.src = src;          // if you move files into /quotes, change to "./quotes/" + src
+      audioEl.volume = 0.3;
+      audioEl.play();
+    } catch (e) {
+      // ignore autoplay / permission errors
+    }
+  }
+
+  function updateQuote() {
+    if (_quoteBag.length === 0) _refillQuoteBag();
+    const q = _quoteBag.shift();    // q is { text, audio }
+    _lastQuote = q;
+    const box = document.getElementById("quoteBox");
+    if (box && q && q.text) {
+      box.textContent = "“" + q.text + "”";
+    }
+    if (q && q.audio) {
+      playQuoteAudio(q.audio);
+    }
+  }
 
   // ---------------------------------------
-  // DATA: Day 1 + Day 2 + Day 3 (Beginner)
+  // COMPLETION AWARD IMAGES (PNG)
+  // ---------------------------------------
+  const COMPLETION_IMAGES = [
+    "./award1.png",
+    "./award2.png",
+    "./award3.png",
+    "./award4.png",
+    "./award5.png",
+    "./award6.png",
+    "./award7.png"
+  ];
+  
+  let _awardBag = [];
+
+  function pickAwardImage() {
+    if (_awardBag.length === 0) {
+      _awardBag = _shuffle([...COMPLETION_IMAGES]);
+    }
+    return _awardBag.shift();
+  }
+
+  // ---------------------------------------
+  // COMPLETION SOUNDS (MP3) – RANDOM, NO REPEATS
+  // ---------------------------------------
+  const COMPLETION_SOUNDS = [
+    "./workout-complete1.mp3",
+    "./workout-complete2.mp3",
+    "./workout-complete3.mp3",
+    "./workout-complete4.mp3",
+    "./workout-complete5.mp3",
+    "./workout-complete6.mp3",
+    "./workout-complete7.mp3"
+  ];
+
+  let _soundBag = [];
+
+  function pickCompletionSound() {
+    if (_soundBag.length === 0) {
+      _soundBag = _shuffle([...COMPLETION_SOUNDS]);
+    }
+    return _soundBag.shift();
+  }
+
+  // ---------------------------------------
+  // DATA: Days + Exercises
   // ---------------------------------------
   const DAYS = {
     day1: {
-      label: "Day 1 – PUSH",
+      label: "Upper 1 – Push",
       exercises: [
         { name:"Dumbbell Bench Press", sets:3, reps:"8–10", weight:"25–40 lb dumbbells",
           notes:"Controlled reps. Shoulder blades squeezed. Stop 2 reps before failure.", img:"dumbbell-benchpress.gif" },
@@ -281,7 +471,7 @@ function updateQuote() {
     },
 
     day2: {
-      label: "Day 2 – PULL",
+      label: "Upper 2 – Pull",
       exercises: [
         { name:"Lat Pulldown", sets:3, reps:"8–10", weight:"70–100 lb",
           notes:"Full stretch at top. Pull elbows down. Chest tall.", img:"latpulldown.gif" },
@@ -297,7 +487,7 @@ function updateQuote() {
     },
 
     day3: {
-      label: "Day 3 – SHOULDERS & ARMS",
+      label: "Upper 3 – Shoulders & Arms",
       exercises: [
         { name:"Machine Shoulder Press", sets:3, reps:"8–10", weight:"40–80 lb",
           notes:"Seat so handles start near chin. Control down; don’t slam the stack.", img:"shoulder-press.gif" },
@@ -310,6 +500,38 @@ function updateQuote() {
         { name:"Overhead Cable Triceps Extension", sets:3, reps:"10–12", weight:"30–50 lb",
           notes:"Elbows narrow. Big stretch behind head. Smooth lockout.", img:"overhead-cable-triceps.gif" },
       ]
+    },
+
+    leg1: {
+      label: "Leg 1 – Quads & Glutes",
+      exercises: [
+        { name:"Leg Press (Machine)", sets:3, reps:"10–12", weight:"90–180 lb total",
+          notes:"Feet shoulder-width on platform. Control the descent. Do not lock knees hard at the top.", img:"leg-press.gif" },
+        { name:"Goblet Squat", sets:3, reps:"10–12", weight:"25–45 lb dumbbell",
+          notes:"Hold the dumbbell close to chest. Sit between your hips, keep heels down and chest up.", img:"goblet-squat.gif" },
+        { name:"Walking Lunge", sets:2, reps:"10 steps per leg", weight:"15–25 lb dumbbells",
+          notes:"Long stride. Front knee tracks over toes, back knee drops toward the floor under control.", img:"walking-lunge.gif" },
+        { name:"Leg Extension (Machine)", sets:2, reps:"12–15", weight:"40–80 lb",
+          notes:"Pause and squeeze at the top. Lower under control; don’t swing the stack.", img:"leg-extension.gif" },
+        { name:"Standing Calf Raise", sets:3, reps:"12–15", weight:"Bodyweight or light added load",
+          notes:"Full stretch at bottom and hard squeeze at top. Use a stable support if needed.", img:"standing-calf-raise.gif" },
+      ]
+    },
+
+    leg2: {
+      label: "Leg 2 – Posterior Chain",
+      exercises: [
+        { name:"Romanian Deadlift (DB/BB)", sets:3, reps:"8–10", weight:"60–135 lb total",
+          notes:"Soft knees. Push hips back, feel the stretch in hamstrings. Keep back flat, bar close.", img:"romanian-deadlift.gif" },
+        { name:"Hip Thrust (Bench/ Machine)", sets:3, reps:"10–12", weight:"60–135 lb",
+          notes:"Drive through heels. Squeeze glutes hard at top and pause briefly.", img:"hip-thrust.gif" },
+        { name:"Leg Curl (Machine)", sets:3, reps:"10–12", weight:"40–80 lb",
+          notes:"Control the curl and the return. Don’t slam the stack at extension.", img:"leg-curl.gif" },
+        { name:"Bodyweight Step-Up", sets:2, reps:"10 per leg", weight:"Bodyweight or light dumbbells",
+          notes:"Plant whole foot on the step. Drive through heel and avoid pushing off the back leg.", img:"step-up.gif" },
+        { name:"Seated Calf Raise", sets:3, reps:"12–15", weight:"25–70 lb",
+          notes:"Slow stretch at bottom, strong squeeze at top. Do not bounce.", img:"seated-calf-raise.gif" },
+      ]
     }
   };
 
@@ -318,8 +540,9 @@ function updateQuote() {
   // ---------------------------
   let currentDayKey = "day1";
   let idx = 0;
-  let currentSet = 0;
 
+  let workoutComplete = false;
+  
   let workoutStart = null;
   let workoutTimerId = null;
 
@@ -327,6 +550,21 @@ function updateQuote() {
   let restTimerId = null;
 
   const el = (id) => document.getElementById(id);
+
+  // ---------------------------
+  // AUDIO HELPER
+  // ---------------------------
+  function playSound(id) {
+    const a = document.getElementById(id);
+    if (!a) return;
+    try {
+      a.currentTime = 0;
+      a.volume = 0.05;
+      a.play();
+    } catch (e) {
+      // ignore autoplay/gesture-related errors
+    }
+  }
 
   function fmt(sec) {
     const m = Math.floor(sec / 60);
@@ -337,7 +575,6 @@ function updateQuote() {
   function startWorkoutTimer() {
     if (workoutTimerId) return;
     workoutStart = Date.now();
-    el("statusBadge").textContent = "Running";
     workoutTimerId = setInterval(() => {
       const elapsed = Math.floor((Date.now() - workoutStart) / 1000);
       el("workoutTime").textContent = fmt(elapsed);
@@ -368,6 +605,7 @@ function updateQuote() {
       if (restSeconds <= 0) {
         clearInterval(restTimerId);
         restTimerId = null;
+        playSound("audioRestComplete");
         if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
       }
     }, 1000);
@@ -378,9 +616,10 @@ function updateQuote() {
   }
 
   function renderTabs() {
-    el("tabDay1").classList.toggle("active", currentDayKey === "day1");
-    el("tabDay2").classList.toggle("active", currentDayKey === "day2");
-    el("tabDay3").classList.toggle("active", currentDayKey === "day3");
+    const sel = el("daySelect");
+    if (sel && sel.value !== currentDayKey) {
+      sel.value = currentDayKey;
+    }
   }
 
   function render() {
@@ -388,80 +627,220 @@ function updateQuote() {
     const list = getExercises();
     const ex = list[idx];
 
-    // reset image error
-    el("imgErr").style.display = "none";
-    el("exImg").style.display = "block";
+    // ensure progress field exists
+    if (typeof ex.doneSets !== "number") ex.doneSets = 0;
 
-    el("exName").textContent = `${DAYS[currentDayKey].label} — ${idx + 1}/${list.length}: ${ex.name}`;
-    el("exNotes").textContent = ex.notes;
-    el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
-    el("exWeight").textContent = ex.weight;
-    el("exSetTracker").textContent = `Set ${currentSet}/${ex.sets}`;
+    // Grab layout pieces
+    const exerciseGrid = el("exerciseGrid") || document.querySelector(".grid");
+    const completionView = el("completionView");
+    const row = document.querySelector(".row");
+    const btnSet = el("btnSetDone");
+    const btnReset = el("btnResetSet");
+    const rulesBox = document.querySelector(".mini");
 
-    // use explicit relative path
-    el("exImg").src = "./" + ex.img;
+    if (workoutComplete) {
+      // --- SHOW COMPLETION SCREEN ---
+      if (exerciseGrid) exerciseGrid.style.display = "none";
+      if (completionView) completionView.style.display = "block";
 
-    el("planList").innerHTML = list.map((w, i) => {
-      const marker = (i === idx) ? "👉" : "•";
-      return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
-    }).join("<br>");
+      // Hide exercise-only UI
+      if (el("exImg")) el("exImg").style.display = "none";
+      if (el("imgErr")) el("imgErr").style.display = "none";
+      if (el("quoteBox")) el("quoteBox").style.display = "none";
+      if (el("exName")) el("exName").style.display = "none";
+      if (el("exNotes")) el("exNotes").style.display = "none";
+      if (row) row.style.display = "none";
+      if (btnSet) btnSet.style.display = "none";
+      if (btnReset) btnReset.style.display = "none";
 
-    updateQuote();
+      // Hide Prev/Next buttons
+      if (el("btnPrev")) el("btnPrev").style.display = "none";
+      if (el("btnNext")) el("btnNext").style.display = "none";
+
+      // Hide the checklist
+      if (el("planList")) el("planList").style.display = "none";
+
+      // Hide Rules / Progress mini box
+      if (rulesBox) rulesBox.style.display = "none";
+
+    } else {
+      // --- NORMAL EXERCISE VIEW ---
+      if (exerciseGrid) exerciseGrid.style.display = "grid";
+      if (completionView) completionView.style.display = "none";
+
+      // Show exercise UI again
+      if (el("quoteBox")) el("quoteBox").style.display = "block";
+      if (el("exName")) el("exName").style.display = "block";
+      if (el("exNotes")) el("exNotes").style.display = "block";
+      if (row) row.style.display = "flex";
+      if (btnSet) btnSet.style.display = "inline-block";
+      if (btnReset) btnReset.style.display = "inline-block";
+
+      // Show Prev/Next
+      if (el("btnPrev")) el("btnPrev").style.display = "inline-block";
+      if (el("btnNext")) el("btnNext").style.display = "inline-block";
+
+      // Show checklist
+      if (el("planList")) el("planList").style.display = "block";
+
+      // Show Rules / Progress mini box
+      if (rulesBox) rulesBox.style.display = "block";
+
+      // reset image error
+      el("imgErr").style.display = "none";
+      el("exImg").style.display = "block";
+
+      // Fill in exercise details
+      el("exName").textContent = `${idx + 1}/${list.length}: ${ex.name}`;
+      el("exNotes").textContent = ex.notes;
+      el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
+      el("exWeight").textContent = ex.weight;
+      el("exSetTracker").textContent = `Set ${ex.doneSets}/${ex.sets}`;
+
+      el("exImg").src = "./" + ex.img;
+
+      updateQuote();
+    }
+
+    // Plan list with completion checkmarks (data always kept in sync)
+    el("planList").innerHTML = list
+      .map((w, i) => {
+        if (typeof w.doneSets !== "number") w.doneSets = 0;
+        const isCurrent = i === idx;
+        const isComplete = w.doneSets >= w.sets;
+        let marker = "•";
+        if (isComplete && isCurrent) marker = "✅👉";
+        else if (isComplete) marker = "✅";
+        else if (isCurrent) marker = "👉";
+        return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
+      })
+      .join("<br>");
+
+    // Next button color based on completion of current exercise
+    const nextBtn = el("btnNext");
+    if (ex.doneSets >= ex.sets) {
+      nextBtn.classList.add("next-ready");
+    } else {
+      nextBtn.classList.remove("next-ready");
+    }
   }
 
   function nextExercise() {
     stopRestTimer();
+
+    // reset Next button color when moving to a new exercise
+    el("btnNext").classList.remove("next-ready");
+
     const list = getExercises();
     if (idx < list.length - 1) {
+      // Normal move to next exercise
+      workoutComplete = false;
       idx++;
-      currentSet = 0;
-      el("statusBadge").textContent = "Running";
       render();
     } else {
-      el("statusBadge").textContent = "Workout Complete";
+      // LAST exercise → show completion screen instead of popup
+      workoutComplete = true;
+
+      // Pick a random award image (no repeats until all are used)
+      const img = el("completionImg");
+      if (img && COMPLETION_IMAGES.length > 0) {
+        const src = pickAwardImage();
+
+        // Reset animation state
+        img.classList.remove("animate-in");
+        img.style.opacity = 0;
+        img.style.transform = "scale(0.6)";
+
+        img.onload = () => {
+          // Force reflow so animation restarts each time
+          void img.offsetWidth;
+          img.classList.add("animate-in");
+        };
+
+        img.src = src + "?v=" + Math.random();
+      }
+
+      // Pick a random completion sound (no repeats until all are used)
+      const ca = el("completionAudio");
+      if (ca && COMPLETION_SOUNDS.length > 0) {
+        try {
+          const soundSrc = pickCompletionSound();
+          ca.pause();
+          ca.currentTime = 0;
+          ca.src = soundSrc + "?v=" + Math.random();
+          ca.volume = 0.3;
+          ca.play();
+        } catch (e) {
+          // ignore autoplay errors
+        }
+      }
+
+      // Vibrate pattern for "big finish"
       if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
-      alert(`${DAYS[currentDayKey].label} complete ✅`);
+
+      render();
     }
   }
 
   function prevExercise() {
     stopRestTimer();
+
+    // If we’re on the completion screen, exit it
+    workoutComplete = false;
+
     idx = Math.max(idx - 1, 0);
-    currentSet = 0;
-    el("statusBadge").textContent = "Running";
     render();
   }
 
   function setDone() {
     const list = getExercises();
     const ex = list[idx];
+    const nextBtn = el("btnNext");
 
-    if (currentSet < ex.sets) currentSet++;
-    render();
+    if (typeof ex.doneSets !== "number") ex.doneSets = 0;
 
-    if (currentSet < ex.sets) {
-      startRestTimer(75);
-    } else {
-      stopRestTimer();
-      el("statusBadge").textContent = "Exercise Complete";
-      if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
+    // Extra taps after all sets complete
+    if (ex.doneSets >= ex.sets) {
+      if (navigator.vibrate) navigator.vibrate(150);
+      playSound("audioFinalSet");
+      nextBtn.classList.add("next-ready");
+      return;
     }
+
+    // Log one more set
+    ex.doneSets++;
+
+    // Final set just completed
+    if (ex.doneSets >= ex.sets) {
+      stopRestTimer();
+      if (navigator.vibrate) navigator.vibrate(150);
+      playSound("audioFinalSet");
+      nextBtn.classList.add("next-ready");
+    } else {
+      nextBtn.classList.remove("next-ready");
+      playSound("audioSetDone");
+      startRestTimer(75);
+    }
+
+    render();
   }
 
   function resetSets() {
-    currentSet = 0;
+    const list = getExercises();
+    const ex = list[idx];
+    ex.doneSets = 0;
     stopRestTimer();
-    el("statusBadge").textContent = "Running";
+    el("btnNext").classList.remove("next-ready");
     render();
   }
 
   function switchDay(dayKey) {
     currentDayKey = dayKey;
     idx = 0;
-    currentSet = 0;
+    workoutComplete = false;
     stopRestTimer();
-    resetWorkoutTimer(); // optional: restart workout timer when switching days
-    el("statusBadge").textContent = "Ready";
+    resetWorkoutTimer();
+    el("btnNext").classList.remove("next-ready");
     render();
   }
 
@@ -473,15 +852,28 @@ function updateQuote() {
   el("btnSetDone").addEventListener("click", () => { startWorkoutTimer(); setDone(); });
   el("btnResetSet").addEventListener("click", resetSets);
 
-  el("btnNext").addEventListener("click", nextExercise);
-  el("btnPrev").addEventListener("click", prevExercise);
+  el("btnNext").addEventListener("click", () => {
+    playSound("audioSwipe");
+    nextExercise();
+  });
 
-  el("tabDay1").addEventListener("click", () => switchDay("day1"));
-  el("tabDay2").addEventListener("click", () => switchDay("day2"));
-  el("tabDay3").addEventListener("click", () => switchDay("day3"));
+  el("btnPrev").addEventListener("click", () => {
+    playSound("audioSwipe");
+    prevExercise();
+  });
+
+  const daySel = el("daySelect");
+  if (daySel) {
+    daySel.addEventListener("change", (e) => switchDay(e.target.value));
+  }
 
   // Initial render
   render();
+
+  // App start sound
+  window.addEventListener("load", () => {
+    playSound("audioIntro");
+  });
 </script>
 </body>
 </html>
