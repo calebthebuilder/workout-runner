@@ -122,15 +122,13 @@
       border-radius: 8px;
     }
 
-    /* Completion award fade-in */
+    /* Award image fade-in */
     .award-img {
       opacity: 0;
-      transform: scale(0.96);
-      transition: opacity 0.45s ease, transform 0.45s ease;
+      transition: opacity 0.4s ease-in-out;
     }
-    .award-img.visible {
+    .award-img.loaded {
       opacity: 1;
-      transform: scale(1);
     }
   </style>
 </head>
@@ -187,12 +185,12 @@
         </div>
       </div>
 
-      <!-- Workout complete view (uses same container) -->
+      <!-- Workout complete view -->
       <div id="completionView"
            style="display:none; text-align:center; padding:16px 8px;">
         <img id="completionImg"
              class="award-img"
-             src="./workout-complete.png"
+             src=""
              alt="Workout complete"
              style="width:100%; height:auto; border-radius:16px; margin-bottom:12px; display:block;">
 
@@ -374,7 +372,6 @@
   let _awardBag = [];
 
   function pickAwardImage() {
-    // Refill + shuffle when empty
     if (_awardBag.length === 0) {
       _awardBag = _shuffle([...COMPLETION_IMAGES]);
     }
@@ -432,6 +429,7 @@
           notes:"Elbows narrow. Big stretch behind head. Smooth lockout.", img:"overhead-cable-triceps.gif" },
       ]
     },
+
     leg1: {
       label: "Leg 1 – Quads & Glutes",
       exercises: [
@@ -447,6 +445,7 @@
           notes:"Full stretch at bottom and hard squeeze at top. Use a stable support if needed.", img:"standing-calf-raise.gif" },
       ]
     },
+
     leg2: {
       label: "Leg 2 – Posterior Chain",
       exercises: [
@@ -670,24 +669,19 @@
       // LAST exercise → show completion screen instead of popup
       workoutComplete = true;
 
-      playSound("audioWorkoutComplete");
-      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
-
-      // Switch to completion view
-      render();
-
-      // Pick a random award image (no repeats until bag empties), then fade it in
+      // Pick a random award image (no repeats until all are used)
       const img = el("completionImg");
       if (img && COMPLETION_IMAGES.length > 0) {
         const src = pickAwardImage();
 
-        img.classList.remove("visible");          // reset fade state
-        img.src = src + "?v=" + Math.random();    // cache-bust
-        void img.offsetWidth;                     // force reflow
-        img.classList.add("visible");             // trigger fade+scale
+        img.classList.remove("loaded");
+        img.onload = () => img.classList.add("loaded");
+        img.src = src + "?v=" + Math.random();
       }
 
-      // Optional: also play the visible completion audio clip
+      playSound("audioWorkoutComplete");
+      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
+
       const ca = el("completionAudio");
       if (ca) {
         try {
@@ -697,6 +691,8 @@
           // ignore autoplay errors
         }
       }
+
+      render();
     }
   }
 
