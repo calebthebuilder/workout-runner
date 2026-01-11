@@ -534,13 +534,11 @@ function render() {
   const btnReset = el("btnResetSet");
 
   if (workoutComplete) {
-    // ✅ SHOW COMPLETION SCREEN
-
-    // Swap main views
+    // --- SHOW COMPLETION SCREEN ---
     if (exerciseGrid) exerciseGrid.style.display = "none";
     if (completionView) completionView.style.display = "block";
 
-    // Hide exercise-specific UI
+    // Hide exercise-only UI
     if (el("exImg")) el("exImg").style.display = "none";
     if (el("imgErr")) el("imgErr").style.display = "none";
     if (el("quoteBox")) el("quoteBox").style.display = "none";
@@ -550,20 +548,32 @@ function render() {
     if (btnSet) btnSet.style.display = "none";
     if (btnReset) btnReset.style.display = "none";
 
-  } else {
-    // ✅ NORMAL EXERCISE VIEW
+    // NEW: Hide Prev/Next buttons
+    if (el("btnPrev")) el("btnPrev").style.display = "none";
+    if (el("btnNext")) el("btnNext").style.display = "none";
 
-    // Swap main views
+    // NEW: Hide the checklist
+    if (el("planList")) el("planList").style.display = "none";
+
+} else {
+    // --- NORMAL EXERCISE VIEW ---
     if (exerciseGrid) exerciseGrid.style.display = "grid";
     if (completionView) completionView.style.display = "none";
 
-    // Show exercise UI
+    // Show exercise UI again
     if (el("quoteBox")) el("quoteBox").style.display = "block";
     if (el("exName")) el("exName").style.display = "block";
     if (el("exNotes")) el("exNotes").style.display = "block";
     if (row) row.style.display = "flex";
     if (btnSet) btnSet.style.display = "inline-block";
     if (btnReset) btnReset.style.display = "inline-block";
+
+    // Show Prev/Next
+    if (el("btnPrev")) el("btnPrev").style.display = "inline-block";
+    if (el("btnNext")) el("btnNext").style.display = "inline-block";
+
+    // Show checklist
+    if (el("planList")) el("planList").style.display = "block";
 
     // reset image error
     el("imgErr").style.display = "none";
@@ -578,9 +588,9 @@ function render() {
 
     el("exImg").src = "./" + ex.img;
 
-    // Only bother updating motivation when we’re in normal mode
     updateQuote();
-  }
+}
+
 
   // Plan list with completion checkmarks (always visible)
   el("planList").innerHTML = list
