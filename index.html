@@ -248,6 +248,9 @@
   <audio id="quoteAudio"></audio>
   
 <script>
+  // ---------------------------
+  // QUOTES (simple string list)
+  // ---------------------------
   const QUOTES = [
     /* 1 */ "Every workout is a step forward.",
     /* 2 */ "You miss 100% of the shots you don't take.",
@@ -268,7 +271,7 @@
     /* 17 */ "Success is no accident...",
     /* 18 */ "If something stands between you and your success, move it...",
     /* 19 */ "Strong today, stronger tomorrow.",
-    /* 20 */ "It's what you do in the dark, that puts you in the light.",
+    /* 20 */ "It's what you do in the dark that puts you in the light.",
     /* 21 */ "Don't wait until you've reached your goal to be proud of yourself.",
     /* 22 */ "Your body hears everything your mind says.",
     /* 23 */ "It's up to you to start making healthy choices today.",
@@ -350,16 +353,8 @@
     /* 99 */ "You're becoming more capable.",
     /* 100 */ "One more set. One more step."
   ];
-</script>
 
-
-  // QUOTES now includes text + mapped audio filenames quote1.mp3, quote2.mp3, ...
-  const QUOTES = QUOTE_TEXTS.map((text, index) => ({
-    text,
-    audio: `quote${index + 1}.mp3`
-  }));
-
-  // --- Quotes: no repeats until all are used ---
+  // --- Quotes: random, no repeats until all are used ---
   let _quoteBag = [];
   let _lastQuote = null;
 
@@ -378,32 +373,13 @@
     }
   }
 
-  // Play the quote's mp3
-  function playQuoteAudio(src) {
-    if (!src) return;
-    const audioEl = document.getElementById("quoteAudio");
-    if (!audioEl) return;
-    try {
-      audioEl.pause();
-      audioEl.currentTime = 0;
-      audioEl.src = src;          // if you move files into /quotes, change to "./quotes/" + src
-      audioEl.volume = 0.3;
-      audioEl.play();
-    } catch (e) {
-      // ignore autoplay / permission errors
-    }
-  }
-
   function updateQuote() {
     if (_quoteBag.length === 0) _refillQuoteBag();
-    const q = _quoteBag.shift();    // q is { text, audio }
-    _lastQuote = q;
+    const text = _quoteBag.shift();   // string
+    _lastQuote = text;
     const box = document.getElementById("quoteBox");
-    if (box && q && q.text) {
-      box.textContent = "“" + q.text + "”";
-    }
-    if (q && q.audio) {
-      playQuoteAudio(q.audio);
+    if (box && text) {
+      box.textContent = "“" + text + "”";
     }
   }
 
@@ -419,7 +395,7 @@
     "./award6.png",
     "./award7.png"
   ];
-  
+
   let _awardBag = [];
 
   function pickAwardImage() {
@@ -536,7 +512,7 @@
     }
   };
 
-  // ---------------------------
+  // ---------------------------  
   // STATE
   // ---------------------------
   let currentDayKey = "day1";
@@ -628,10 +604,8 @@
     const list = getExercises();
     const ex = list[idx];
 
-    // ensure progress field exists
     if (typeof ex.doneSets !== "number") ex.doneSets = 0;
 
-    // Grab layout pieces
     const exerciseGrid = el("exerciseGrid") || document.querySelector(".grid");
     const completionView = el("completionView");
     const row = document.querySelector(".row");
@@ -640,11 +614,9 @@
     const rulesBox = document.querySelector(".mini");
 
     if (workoutComplete) {
-      // --- SHOW COMPLETION SCREEN ---
       if (exerciseGrid) exerciseGrid.style.display = "none";
       if (completionView) completionView.style.display = "block";
 
-      // Hide exercise-only UI
       if (el("exImg")) el("exImg").style.display = "none";
       if (el("imgErr")) el("imgErr").style.display = "none";
       if (el("quoteBox")) el("quoteBox").style.display = "none";
@@ -654,22 +626,16 @@
       if (btnSet) btnSet.style.display = "none";
       if (btnReset) btnReset.style.display = "none";
 
-      // Hide Prev/Next buttons
       if (el("btnPrev")) el("btnPrev").style.display = "none";
       if (el("btnNext")) el("btnNext").style.display = "none";
 
-      // Hide the checklist
       if (el("planList")) el("planList").style.display = "none";
-
-      // Hide Rules / Progress mini box
       if (rulesBox) rulesBox.style.display = "none";
 
     } else {
-      // --- NORMAL EXERCISE VIEW ---
       if (exerciseGrid) exerciseGrid.style.display = "grid";
       if (completionView) completionView.style.display = "none";
 
-      // Show exercise UI again
       if (el("quoteBox")) el("quoteBox").style.display = "block";
       if (el("exName")) el("exName").style.display = "block";
       if (el("exNotes")) el("exNotes").style.display = "block";
@@ -677,21 +643,15 @@
       if (btnSet) btnSet.style.display = "inline-block";
       if (btnReset) btnReset.style.display = "inline-block";
 
-      // Show Prev/Next
       if (el("btnPrev")) el("btnPrev").style.display = "inline-block";
       if (el("btnNext")) el("btnNext").style.display = "inline-block";
 
-      // Show checklist
       if (el("planList")) el("planList").style.display = "block";
-
-      // Show Rules / Progress mini box
       if (rulesBox) rulesBox.style.display = "block";
 
-      // reset image error
       el("imgErr").style.display = "none";
       el("exImg").style.display = "block";
 
-      // Fill in exercise details
       el("exName").textContent = `${idx + 1}/${list.length}: ${ex.name}`;
       el("exNotes").textContent = ex.notes;
       el("exSetsReps").textContent = `${ex.sets} × ${ex.reps}`;
@@ -703,7 +663,6 @@
       updateQuote();
     }
 
-    // Plan list with completion checkmarks (data always kept in sync)
     el("planList").innerHTML = list
       .map((w, i) => {
         if (typeof w.doneSets !== "number") w.doneSets = 0;
@@ -717,7 +676,6 @@
       })
       .join("<br>");
 
-    // Next button color based on completion of current exercise
     const nextBtn = el("btnNext");
     if (ex.doneSets >= ex.sets) {
       nextBtn.classList.add("next-ready");
@@ -728,40 +686,29 @@
 
   function nextExercise() {
     stopRestTimer();
-
-    // reset Next button color when moving to a new exercise
     el("btnNext").classList.remove("next-ready");
 
     const list = getExercises();
     if (idx < list.length - 1) {
-      // Normal move to next exercise
       workoutComplete = false;
       idx++;
       render();
     } else {
-      // LAST exercise → show completion screen instead of popup
       workoutComplete = true;
 
-      // Pick a random award image (no repeats until all are used)
       const img = el("completionImg");
       if (img && COMPLETION_IMAGES.length > 0) {
         const src = pickAwardImage();
-
-        // Reset animation state
         img.classList.remove("animate-in");
         img.style.opacity = 0;
         img.style.transform = "scale(0.6)";
-
         img.onload = () => {
-          // Force reflow so animation restarts each time
           void img.offsetWidth;
           img.classList.add("animate-in");
         };
-
         img.src = src + "?v=" + Math.random();
       }
 
-      // Pick a random completion sound (no repeats until all are used)
       const ca = el("completionAudio");
       if (ca && COMPLETION_SOUNDS.length > 0) {
         try {
@@ -771,12 +718,9 @@
           ca.src = soundSrc + "?v=" + Math.random();
           ca.volume = 0.3;
           ca.play();
-        } catch (e) {
-          // ignore autoplay errors
-        }
+        } catch (e) {}
       }
 
-      // Vibrate pattern for "big finish"
       if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
 
       render();
@@ -785,10 +729,7 @@
 
   function prevExercise() {
     stopRestTimer();
-
-    // If we’re on the completion screen, exit it
     workoutComplete = false;
-
     idx = Math.max(idx - 1, 0);
     render();
   }
@@ -800,7 +741,6 @@
 
     if (typeof ex.doneSets !== "number") ex.doneSets = 0;
 
-    // Extra taps after all sets complete
     if (ex.doneSets >= ex.sets) {
       if (navigator.vibrate) navigator.vibrate(150);
       playSound("audioFinalSet");
@@ -808,10 +748,8 @@
       return;
     }
 
-    // Log one more set
     ex.doneSets++;
 
-    // Final set just completed
     if (ex.doneSets >= ex.sets) {
       stopRestTimer();
       if (navigator.vibrate) navigator.vibrate(150);
@@ -868,13 +806,12 @@
     daySel.addEventListener("change", (e) => switchDay(e.target.value));
   }
 
-  // Initial render
   render();
 
-  // App start sound
   window.addEventListener("load", () => {
     playSound("audioIntro");
   });
 </script>
+
 </body>
 </html>
