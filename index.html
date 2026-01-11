@@ -122,13 +122,31 @@
       border-radius: 8px;
     }
 
-    /* Award image fade-in */
+    /* Award image animation: scale + fade over ~5s */
     .award-img {
       opacity: 0;
-      transition: opacity 0.4s ease-in-out;
+      transform: scale(0.6);
     }
-    .award-img.loaded {
-      opacity: 1;
+    .award-img.animate-in {
+      animation: awardIn 5s ease-out forwards;
+    }
+    @keyframes awardIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.6);
+      }
+      30% {
+        opacity: 1;
+        transform: scale(1.05);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(0.98);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
   </style>
 </head>
@@ -222,7 +240,7 @@
   <audio id="audioIntro" src="intro.mp3"></audio>
   <audio id="audioSetDone" src="set-done.mp3"></audio>
   <audio id="audioRestComplete" src="rest-complete.mp3"></audio>
-  <!-- audioWorkoutComplete is no longer used, but kept in case you want it later -->
+  <!-- audioWorkoutComplete kept but not used by the final screen -->
   <audio id="audioWorkoutComplete" src="workout-complete.mp3"></audio>
   <audio id="audioSwipe" src="swipe.mp3"></audio>
   <audio id="audioFinalSet" src="final-set.mp3"></audio>
@@ -698,8 +716,17 @@
       if (img && COMPLETION_IMAGES.length > 0) {
         const src = pickAwardImage();
 
-        img.classList.remove("loaded");
-        img.onload = () => img.classList.add("loaded");
+        // Reset animation state
+        img.classList.remove("animate-in");
+        img.style.opacity = 0;
+        img.style.transform = "scale(0.6)";
+
+        img.onload = () => {
+          // Force reflow so animation restarts each time
+          void img.offsetWidth;
+          img.classList.add("animate-in");
+        };
+
         img.src = src + "?v=" + Math.random();
       }
 
