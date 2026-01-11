@@ -348,6 +348,18 @@
     const box = document.getElementById("quoteBox");
     if (box) box.textContent = "“" + q + "”";
   }
+  // ---------------------------------------
+  // COMPLETION AWARD IMAGES
+  // ---------------------------------------
+  const COMPLETION_IMAGES = [
+    "./award1.png",
+    "./award2.png",
+    "./award3.png",
+    "./award4.png",
+    "./award5.png",
+    "./award6.png",
+    "./award7.png"
+  ];
 
   // ---------------------------------------
   // DATA: Days + Exercises
@@ -622,41 +634,47 @@ function render() {
   }
 }
 
-
-
   function nextExercise() {
-  stopRestTimer();
+    stopRestTimer();
 
-  // reset Next button color when moving to a new exercise
-  el("btnNext").classList.remove("next-ready");
+    // reset Next button color when moving to a new exercise
+    el("btnNext").classList.remove("next-ready");
 
-  const list = getExercises();
-  if (idx < list.length - 1) {
-    // Normal move to next exercise
-    workoutComplete = false;
-    idx++;
-    render();
-  } else {
-    // LAST exercise → show completion screen instead of popup
-    workoutComplete = true;
+    const list = getExercises();
+    if (idx < list.length - 1) {
+      // Normal move to next exercise
+      workoutComplete = false;
+      idx++;
+      render();
+    } else {
+      // LAST exercise → show completion screen instead of popup
+      workoutComplete = true;
 
-    playSound("audioWorkoutComplete"); // still plays your old completion sound
-    if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
-
-    // Optional: also play the visible completion audio clip
-    const ca = el("completionAudio");
-    if (ca) {
-      try {
-        ca.currentTime = 0;
-        ca.play();
-      } catch (e) {
-        // ignore autoplay errors
+      // Pick a random award image
+      const img = el("completionImg");
+      if (img && COMPLETION_IMAGES.length > 0) {
+        const index = Math.floor(Math.random() * COMPLETION_IMAGES.length);
+        img.src = COMPLETION_IMAGES[index];
       }
-    }
 
-    render();
+      playSound("audioWorkoutComplete"); // still plays your old completion sound
+      if (navigator.vibrate) navigator.vibrate([180, 120, 180, 120, 250]);
+
+      // Optional: also play the visible completion audio clip
+      const ca = el("completionAudio");
+      if (ca) {
+        try {
+          ca.currentTime = 0;
+          ca.play();
+        } catch (e) {
+          // ignore autoplay errors
+        }
+      }
+
+      render();
+    }
   }
-}
+
 
 function prevExercise() {
   stopRestTimer();
