@@ -532,6 +532,7 @@ function render() {
   const row = document.querySelector(".row");
   const btnSet = el("btnSetDone");
   const btnReset = el("btnResetSet");
+  const rulesBox = document.querySelector(".mini");
 
   if (workoutComplete) {
     // --- SHOW COMPLETION SCREEN ---
@@ -548,14 +549,17 @@ function render() {
     if (btnSet) btnSet.style.display = "none";
     if (btnReset) btnReset.style.display = "none";
 
-    // NEW: Hide Prev/Next buttons
+    // Hide Prev/Next buttons
     if (el("btnPrev")) el("btnPrev").style.display = "none";
     if (el("btnNext")) el("btnNext").style.display = "none";
 
-    // NEW: Hide the checklist
+    // Hide the checklist
     if (el("planList")) el("planList").style.display = "none";
 
-} else {
+    // Hide Rules / Progress mini box
+    if (rulesBox) rulesBox.style.display = "none";
+
+  } else {
     // --- NORMAL EXERCISE VIEW ---
     if (exerciseGrid) exerciseGrid.style.display = "grid";
     if (completionView) completionView.style.display = "none";
@@ -575,6 +579,9 @@ function render() {
     // Show checklist
     if (el("planList")) el("planList").style.display = "block";
 
+    // Show Rules / Progress mini box
+    if (rulesBox) rulesBox.style.display = "block";
+
     // reset image error
     el("imgErr").style.display = "none";
     el("exImg").style.display = "block";
@@ -589,10 +596,9 @@ function render() {
     el("exImg").src = "./" + ex.img;
 
     updateQuote();
-}
+  }
 
-
-  // Plan list with completion checkmarks (always visible)
+  // Plan list with completion checkmarks (data always kept in sync)
   el("planList").innerHTML = list
     .map((w, i) => {
       if (typeof w.doneSets !== "number") w.doneSets = 0;
@@ -614,6 +620,7 @@ function render() {
     nextBtn.classList.remove("next-ready");
   }
 }
+
 
 
   function nextExercise() {
