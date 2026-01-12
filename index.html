@@ -120,6 +120,24 @@
       font-size: 13px;
       line-height: 1.35;
       border-radius: 8px;
+      position: relative;      /* for the floating icon */
+      padding-right: 28px;     /* room for 🔊/🔇 */
+    }
+
+    .quote-audio-icon {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      opacity: 0.85;
+      user-select: none;
+    }
+    .quote-audio-icon:hover {
+      opacity: 1;
+    }
+    .quote-audio-icon.off {
+      opacity: 0.45;
     }
 
     /* Award image animation: scale + fade over ~5s */
@@ -188,7 +206,12 @@
           <img class="thumb" id="exImg" alt="exercise image"
                onerror="this.style.display='none'; document.getElementById('imgErr').style.display='block';" />
           <div class="warn" id="imgErr">Image not found — check filename in repo (must match exactly).</div>
-          <div id="quoteBox" class="quote">“Every workout is a step forward.”</div>
+
+          <!-- UPDATED: quote text + tiny audio toggle -->
+          <div id="quoteBox" class="quote">
+            <span id="quoteText">“Every workout is a step forward.”</span>
+            <span id="toggleQuoteAudio" class="quote-audio-icon">🔊</span>
+          </div>
         </div>
 
         <div>
@@ -360,6 +383,9 @@
     audio: `quote${index + 1}.mp3`
   }));
 
+  // Whether quote voice audio is enabled (default: on)
+  let quoteAudioEnabled = true;
+
   // --- Quotes: random, no repeats until all are used ---
   let _quoteBag = [];
   let _lastQuote = null;
@@ -381,7 +407,8 @@
 
   // Play the quote's mp3 via <audio id="quoteAudio">
   function playQuoteAudio(src) {
-    if (!src) return;
+    // respect toggle
+    if (!src || !quoteAudioEnabled) return;
     const audioEl = document.getElementById("quoteAudio");
     if (!audioEl) return;
     try {
@@ -395,13 +422,13 @@
     }
   }
 
-    function updateQuote() {
+  function updateQuote() {
     if (_quoteBag.length === 0) _refillQuoteBag();
     const q = _quoteBag.shift();   // q is { text, audio }
     _lastQuote = q;
-    const box = document.getElementById("quoteBox");
-    if (box && q && q.text) {
-      box.textContent = "“" + q.text + "”";
+    const textEl = document.getElementById("quoteText");
+    if (textEl && q && q.text) {
+      textEl.textContent = "“" + q.text + "”";
     }
     if (q && q.audio) {
       playQuoteAudio(q.audio);
@@ -809,6 +836,18 @@
     render();
   }
 
+  // Tiny icon state helper
+  function updateQuoteAudioIcon() {
+    const icon = el("toggleQuoteAudio");
+    if (!icon) return;
+    icon.textContent = quoteAudioEnabled ? "🔊" : "🔇";
+    if (quoteAudioEnabled) {
+      icon.classList.remove("off");
+    } else {
+      icon.classList.add("off");
+    }
+  }
+
   // ---------------------------
   // EVENTS
   // ---------------------------
@@ -830,6 +869,25 @@
   const daySel = el("daySelect");
   if (daySel) {
     daySel.addEventListener("change", (e) => switchDay(e.target.value));
+  }
+
+  // NEW: quote audio icon toggle
+  const quoteIcon = el("toggleQuoteAudio");
+  if (quoteIcon) {
+    quoteIcon.addEventListener("click", () => {
+      quoteAudioEnabled = !quoteAudioEnabled;
+      updateQuoteAudioIcon();
+
+      // stop current quote audio when turning off
+      if (!quoteAudioEnabled) {
+        const qa = el("quoteAudio");
+        if (qa) {
+          qa.pause();
+          qa.currentTime = 0;
+        }
+      }
+    });
+    updateQuoteAudioIcon();
   }
 
   render();
