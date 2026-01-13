@@ -392,7 +392,7 @@
       audioEl.pause();
       audioEl.currentTime = 0;
       audioEl.src = src;            // if you put files in /quotes, use "./quotes/" + src instead
-      audioEl.volume = 0.3;
+      audioEl.volume = 0.7;
       audioEl.play();
     } catch (e) {
       // ignore autoplay / permission issues
@@ -566,7 +566,7 @@
     if (!a) return;
     try {
       a.currentTime = 0;
-      a.volume = 0.3;
+      a.volume = 0.7;
       a.play();
     } catch (e) {
       // ignore autoplay/gesture-related errors
