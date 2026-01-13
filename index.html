@@ -360,8 +360,8 @@
     audio: `quote${index + 1}.mp3`
   }));
 
-  // Whether quote voice audio is enabled (default: on)
-  let quoteAudioEnabled = true;
+  // Whether quote voice audio is enabled (default: off)
+  let quoteAudioEnabled = false;
 
   // --- Quotes: random, no repeats until all are used ---
   let _quoteBag = [];
@@ -399,7 +399,7 @@
     }
   }
 
-  function updateQuote() {
+ function updateQuote() {
     if (_quoteBag.length === 0) _refillQuoteBag();
     const q = _quoteBag.shift();   // q is { text, audio }
     _lastQuote = q;
@@ -407,7 +407,8 @@
     if (textEl && q && q.text) {
       textEl.textContent = "“" + q.text + "”";
     }
-    if (q && q.audio) {
+    // Only play audio if user has enabled quote audio
+    if (q && q.audio && quoteAudioEnabled) {
       playQuoteAudio(q.audio);
     }
   }
