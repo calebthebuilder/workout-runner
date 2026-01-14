@@ -685,6 +685,7 @@
     const btnSet = el("btnSetDone");
     const btnReset = el("btnResetSet");
     const rulesBox = document.querySelector(".mini");
+    const swapBtn = el("btnSwapExercise");
 
     if (workoutComplete) {
       if (exerciseGrid) exerciseGrid.style.display = "none";
@@ -698,6 +699,7 @@
       if (row) row.style.display = "none";
       if (btnSet) btnSet.style.display = "none";
       if (btnReset) btnReset.style.display = "none";
+      if (swapBtn) swapBtn.style.display = "none";
 
       if (el("btnPrev")) el("btnPrev").style.display = "none";
       if (el("btnNext")) el("btnNext").style.display = "none";
@@ -732,6 +734,12 @@
       el("exSetTracker").textContent = `Set ${ex.doneSets}/${ex.sets}`;
 
       el("exImg").src = "./" + ex.img;
+
+      // SWAP visibility: only show button if an alternate exists
+      if (swapBtn) {
+        const hasAlt = !!EXERCISE_ALTS[ex.name];
+        swapBtn.style.display = hasAlt ? "inline-block" : "none";
+      }
 
       updateQuote();
     }
@@ -947,11 +955,7 @@
 
     if (!state) {
       const alt = EXERCISE_ALTS[ex.name];
-      if (!alt) {
-        alert("No swap set up for this exercise yet.");
-        return;
-      }
-
+      if (!alt) return; // no alert, just bail
       SWAP_STATE[key] = {
         original: { ...ex },
         swapped: true
