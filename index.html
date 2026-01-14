@@ -601,8 +601,9 @@
   let restSeconds = 0;
   let restTimerId = null;
 
-  // NEW: summary visibility
+  // NEW: summary visibility + completion timestamp
   let summaryVisible = false;
+  let workoutCompletedAt = null;
 
   const el = (id) => document.getElementById(id);
 
@@ -620,6 +621,24 @@
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  // Helper: parse average of all numbers in a string ("8–10", "25–40 lb", "10 steps per leg")
+  function parseAverageFromString(str) {
+    if (!str) return null;
+    const matches = String(str).match(/\d+(\.\d+)?/g);
+    if (!matches || matches.length === 0) return null;
+    const nums = matches.map(parseFloat);
+    const sum = nums.reduce((a, b) => a + b, 0);
+    return sum / nums.length;
+  }
+
+  function parseAvgWeight(str) {
+    return parseAverageFromString(str);
+  }
+
+  function parseAvgReps(str) {
+    return parseAverageFromString(str);
   }
 
   function startWorkoutTimer() {
@@ -775,8 +794,18 @@
 
     let totalPlanned = 0;
     let totalDone = 0;
+    let totalLoad = 0;
 
-    const lines = list.map((w, i) => {
+    const dt = workoutCompletedAt || new Date();
+    const dtString = dt.toLocaleString(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
+
+    const lines = [];
+    lines.push(`<b>Workout completed:</b> ${dtString}`);
+
+    list.forEach((w, i) => {
       const planned = w.sets || 0;
       const done = typeof w.doneSets === "number" ? w.doneSets : 0;
       totalPlanned += planned;
@@ -789,15 +818,27 @@
       const nameLabel = swapped ? `${w.name} (swapped)` : w.name;
       const status = done >= planned ? "✅" : "•";
 
-      return `${status} <b>${nameLabel}</b><br>
+      // Approx load calc for this exercise
+      const avgWeight = parseAvgWeight(w.weight);
+      const avgReps = parseAvgReps(w.reps);
+      if (avgWeight != null && done > 0) {
+        const repsPerSet = avgReps != null ? avgReps : 10;
+        totalLoad += done * avgWeight * repsPerSet;
+      }
+
+      lines.push(`${status} <b>${nameLabel}</b><br>
       Sets: ${done}/${planned} — ${w.reps || ""}<br>
-      Weight: ${w.weight || ""}`;
+      Weight: ${w.weight || ""}`);
     });
 
-    lines.push(
-      `<hr style="border:none;border-top:1px solid #243446;margin:8px 0;">
-       <b>Total sets completed:</b> ${totalDone}/${totalPlanned}`
-    );
+    const totalLoadRounded = Math.round(totalLoad);
+    let footer = `<hr style="border:none;border-top:1px solid #243446;margin:8px 0;">
+       <b>Total sets completed:</b> ${totalDone}/${totalPlanned}`;
+    if (totalLoadRounded > 0) {
+      footer += `<br><b>Approx. total load moved:</b> ${totalLoadRounded.toLocaleString()} lb`;
+    }
+
+    lines.push(footer);
 
     box.innerHTML = lines.join("<br><br>");
   }
@@ -853,6 +894,7 @@
     }
 
     workoutComplete = true;
+    workoutCompletedAt = new Date(); // stamp completion moment
 
     // Reset summary state whenever a new workout completes
     summaryVisible = false;
@@ -941,6 +983,7 @@
     stopRestTimer();
     resetWorkoutTimer();
     el("btnNext").classList.remove("next-ready");
+    workoutCompletedAt = null;
     render();
   }
 
