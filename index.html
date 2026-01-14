@@ -815,7 +815,7 @@
       const state = SWAP_STATE[key];
       const swapped = state && state.swapped;
 
-      const nameLabel = swapped ? `${w.name} (swapped)` : w.name;
+      const nameLabel = swapped ? `${w.name} 🔁` : w.name;
       const status = done >= planned ? "✅" : "•";
 
       // Approx load calc for this exercise
