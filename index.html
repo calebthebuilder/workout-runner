@@ -715,45 +715,77 @@
     }
   }
 
-  function nextExercise() {
-    stopRestTimer();
-    el("btnNext").classList.remove("next-ready");
+function nextExercise() {
+  stopRestTimer();
+  el("btnNext").classList.remove("next-ready");
 
-    const list = getExercises();
-    if (idx < list.length - 1) {
-      workoutComplete = false;
-      idx++;
-      render();
-    } else {
-      workoutComplete = true;
+  const list = getExercises();
 
-      const img = el("completionImg");
-      if (img && COMPLETION_IMAGES.length > 0) {
-        const src = pickAwardImage();
-        img.classList.remove("animate-in");
-        img.style.opacity = 0;
-        img.style.transform = "scale(0.6)";
-        img.onload = () => {
-          void img.offsetWidth;
-          img.classList.add("animate-in");
-        };
-        img.src = src + "?v=" + Math.random();
-      }
+  // If we're NOT on the last exercise, just move forward normally
+  if (idx < list.length - 1) {
+    workoutComplete = false;
+    idx++;
+    render();
+    return;
+  }
 
-      const ca = el("completionAudio");
-      if (ca && COMPLETION_SOUNDS.length > 0) {
-        try {
-          const soundSrc = pickCompletionSound();
-          ca.pause();
-          ca.currentTime = 0;
-          ca.src = soundSrc + "?v=" + Math.random();
-          ca.volume = 0.3;
-          ca.play();
-        } catch (e) {}
-      }
+  // We are on the LAST exercise and user pressed Next:
+  // → only allow completion if ALL exercises are fully done.
+  // Normalize doneSets so we can safely compare.
+  list.forEach(ex => {
+    if (typeof ex.doneSets !== "number") ex.doneSets = 0;
+  });
 
-      render();
+  const allDone = list.every(ex => ex.doneSets >= ex.sets);
+
+  if (!allDone) {
+    // Find the first exercise that is not fully completed
+    const firstIncompleteIndex = list.findIndex(ex => ex.doneSets < ex.sets);
+
+    // Optional haptic feedback to signal "not done yet"
+    if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
+
+    alert("Finish all sets for every exercise before completing the workout.");
+
+    // Jump user to the first incomplete exercise
+    if (firstIncompleteIndex !== -1) {
+      idx = firstIncompleteIndex;
     }
+    workoutComplete = false;
+    render();
+    return;
+  }
+
+  // If we reach here, ALL exercises are fully completed → show award screen.
+  workoutComplete = true;
+
+  const img = el("completionImg");
+  if (img && COMPLETION_IMAGES.length > 0) {
+    const src = pickAwardImage();
+    img.classList.remove("animate-in");
+    img.style.opacity = 0;
+    img.style.transform = "scale(0.6)";
+    img.onload = () => {
+      void img.offsetWidth; // reflow to restart animation
+      img.classList.add("animate-in");
+    };
+    img.src = src + "?v=" + Math.random();
+  }
+
+  const ca = el("completionAudio");
+  if (ca && COMPLETION_SOUNDS.length > 0) {
+    try {
+      const soundSrc = pickCompletionSound();
+      ca.pause();
+      ca.currentTime = 0;
+      ca.src = soundSrc + "?v=" + Math.random();
+      ca.volume = 0.3;
+      ca.play();
+    } catch (e) {}
+  }
+  render();
+}
+
   }
 
   function prevExercise() {
