@@ -120,8 +120,8 @@
       font-size: 13px;
       line-height: 1.35;
       border-radius: 8px;
-      position: relative;      /* for the floating icon */
-      padding-right: 28px;     /* room for 🔊/🔇 */
+      position: relative;
+      padding-right: 28px;
     }
 
     .quote-audio-icon {
@@ -140,7 +140,6 @@
       opacity: 0.45;
     }
 
-    /* Award image animation: scale + fade over ~5s */
     .award-img {
       opacity: 0;
       transform: scale(0.6);
@@ -207,7 +206,6 @@
                onerror="this.style.display='none'; document.getElementById('imgErr').style.display='block';" />
           <div class="warn" id="imgErr">Image not found — check filename in repo (must match exactly).</div>
 
-          <!-- UPDATED: quote text + tiny audio toggle -->
           <div id="quoteBox" class="quote">
             <span id="quoteText">“Every workout is a step forward.”</span>
             <span id="toggleQuoteAudio" class="quote-audio-icon">🔊</span>
@@ -215,7 +213,19 @@
         </div>
 
         <div>
-          <h2 id="exName">—</h2>
+          <!-- SWAP: header row with swap button -->
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <h2 id="exName" style="margin:0;">—</h2>
+            <button
+              id="btnSwapExercise"
+              class="mini-action"
+              title="Swap this exercise"
+              style="font-size:11px; padding:4px 8px;"
+            >
+              🔁
+            </button>
+          </div>
+
           <div class="muted" id="exNotes">—</div>
 
           <div class="row">
@@ -235,7 +245,6 @@
              alt="Workout complete"
              style="width:100%; height:auto; border-radius:16px; margin-bottom:12px; display:block;">
 
-        <!-- This audio element’s src will be set dynamically to a random completion sound -->
         <audio id="completionAudio"></audio>
       </div>
 
@@ -263,15 +272,13 @@
   <audio id="audioIntro" src="intro.mp3"></audio>
   <audio id="audioSetDone" src="set-done.mp3"></audio>
   <audio id="audioRestComplete" src="rest-complete.mp3"></audio>
-  <!-- audioWorkoutComplete kept but not used by the final screen -->
   <audio id="audioWorkoutComplete" src="workout-complete.mp3"></audio>
   <audio id="audioSwipe" src="swipe.mp3"></audio>
   <audio id="audioFinalSet" src="final-set.mp3"></audio>
-  <!-- NEW: quote audio (src set per quote in JS) -->
   <audio id="quoteAudio"></audio>
   
 <script>
-   // ---------------------------
+  // ---------------------------
   // QUOTES (text + mp3 mapping)
   // ---------------------------
   const QUOTE_TEXTS = [
@@ -352,18 +359,14 @@
     /* 75 */ "Champions keep going when the others stop.",
     /* 76 */ "A goal without a plan is just a wish.",
     /* 77 */ "The difference between try and triumph is a little umph.",
-    ];
+  ];
 
-  // Map each quote to an object { text, audio: "quoteN.mp3" }
   const QUOTES = QUOTE_TEXTS.map((text, index) => ({
     text,
     audio: `quote${index + 1}.mp3`
   }));
 
-  // Whether quote voice audio is enabled (default: off)
   let quoteAudioEnabled = false;
-
-  // --- Quotes: random, no repeats until all are used ---
   let _quoteBag = [];
   let _lastQuote = null;
 
@@ -382,40 +385,33 @@
     }
   }
 
-  // Play the quote's mp3 via <audio id="quoteAudio">
   function playQuoteAudio(src) {
-    // respect toggle
     if (!src || !quoteAudioEnabled) return;
     const audioEl = document.getElementById("quoteAudio");
     if (!audioEl) return;
     try {
       audioEl.pause();
       audioEl.currentTime = 0;
-      audioEl.src = src;            // if you put files in /quotes, use "./quotes/" + src instead
+      audioEl.src = src;
       audioEl.volume = 0.7;
       audioEl.play();
-    } catch (e) {
-      // ignore autoplay / permission issues
-    }
+    } catch (e) {}
   }
 
- function updateQuote() {
+  function updateQuote() {
     if (_quoteBag.length === 0) _refillQuoteBag();
-    const q = _quoteBag.shift();   // q is { text, audio }
+    const q = _quoteBag.shift();
     _lastQuote = q;
     const textEl = document.getElementById("quoteText");
     if (textEl && q && q.text) {
       textEl.textContent = "“" + q.text + "”";
     }
-    // Only play audio if user has enabled quote audio
     if (q && q.audio && quoteAudioEnabled) {
       playQuoteAudio(q.audio);
     }
   }
 
-  // ---------------------------------------
-  // COMPLETION AWARD IMAGES (PNG)
-  // ---------------------------------------
+  // COMPLETION ASSETS
   const COMPLETION_IMAGES = [
     "./award1.png",
     "./award2.png",
@@ -427,7 +423,6 @@
   ];
 
   let _awardBag = [];
-
   function pickAwardImage() {
     if (_awardBag.length === 0) {
       _awardBag = _shuffle([...COMPLETION_IMAGES]);
@@ -435,11 +430,7 @@
     return _awardBag.shift();
   }
 
-  // ---------------------------------------
-  // COMPLETION SOUNDS (MP3) – RANDOM, NO REPEATS
-  // ---------------------------------------
   const COMPLETION_SOUNDS = [
-
     "./workout-complete1.mp3",
     "./workout-complete2.mp3",
     "./workout-complete3.mp3",
@@ -450,7 +441,6 @@
   ];
 
   let _soundBag = [];
-
   function pickCompletionSound() {
     if (_soundBag.length === 0) {
       _soundBag = _shuffle([...COMPLETION_SOUNDS]);
@@ -458,9 +448,7 @@
     return _soundBag.shift();
   }
 
-  // ---------------------------------------
-  // DATA: Days + Exercises
-  // ---------------------------------------
+  // DAYS DATA
   const DAYS = {
     day1: {
       label: "Upper 1 – Push",
@@ -543,25 +531,64 @@
     }
   };
 
-  // ---------------------------  
+  // SWAP: one alt per Day 1 exercise
+  const EXERCISE_ALTS = {
+    "Dumbbell Bench Press": {
+      name: "Smith Machine Bench Press",
+      sets: 3,
+      reps: "8–10",
+      weight: "25–40 lb on Smith machine",
+      notes: "Set bar just above chest. Feet planted. Lower with control and press straight up.",
+      img: "smith-benchpress.gif"
+    },
+    "Incline Dumbbell Press": {
+      name: "Incline Machine Press",
+      sets: 3,
+      reps: "8–10",
+      weight: "40–80 lb on machine",
+      notes: "Seat so handles start at mid-chest. Press up and slightly back, control the stack.",
+      img: "incline-machinepress.gif"
+    },
+    "Dumbbell Lateral Raise": {
+      name: "Cable Lateral Raise (Single Arm)",
+      sets: 3,
+      reps: "12–15",
+      weight: "5–15 lb on cable",
+      notes: "Cable starts by hip. Lead with elbow to shoulder height, slow lower down.",
+      img: "cable-lateralraise-single.gif"
+    },
+    "Cable Chest Fly": {
+      name: "Dumbbell Chest Fly (Flat Bench)",
+      sets: 2,
+      reps: "12–15",
+      weight: "10–25 lb dumbbells",
+      notes: "Soft elbows. Big chest stretch, then squeeze dumbbells together over chest.",
+      img: "dumbbell-fly.gif"
+    },
+    "Rope Triceps Pushdown": {
+      name: "Dumbbell Overhead Triceps Extension",
+      sets: 3,
+      reps: "10–12",
+      weight: "20–35 lb dumbbell",
+      notes: "Hold one dumbbell overhead. Elbows in, big stretch behind head, strong lockout.",
+      img: "db-overhead-triceps.gif"
+    }
+  };
+
+  // Remember original vs swapped per (day:index)
+  const SWAP_STATE = {};
+
   // STATE
-  // ---------------------------
   let currentDayKey = "day1";
   let idx = 0;
-
   let workoutComplete = false;
-  
   let workoutStart = null;
   let workoutTimerId = null;
-
   let restSeconds = 0;
   let restTimerId = null;
 
   const el = (id) => document.getElementById(id);
 
-  // ---------------------------
-  // AUDIO HELPER
-  // ---------------------------
   function playSound(id) {
     const a = document.getElementById(id);
     if (!a) return;
@@ -569,9 +596,7 @@
       a.currentTime = 0;
       a.volume = 0.7;
       a.play();
-    } catch (e) {
-      // ignore autoplay/gesture-related errors
-    }
+    } catch (e) {}
   }
 
   function fmt(sec) {
@@ -715,76 +740,68 @@
     }
   }
 
-function nextExercise() {
-  stopRestTimer();
-  el("btnNext").classList.remove("next-ready");
+  function nextExercise() {
+    stopRestTimer();
+    el("btnNext").classList.remove("next-ready");
 
-  const list = getExercises();
+    const list = getExercises();
 
-  // If we're NOT on the last exercise, just move forward normally
-  if (idx < list.length - 1) {
-    workoutComplete = false;
-    idx++;
-    render();
-    return;
-  }
-
-  // We are on the LAST exercise and user pressed Next:
-  // → only allow completion if ALL exercises are fully done.
-  // Normalize doneSets so we can safely compare.
-  list.forEach(ex => {
-    if (typeof ex.doneSets !== "number") ex.doneSets = 0;
-  });
-
-  const allDone = list.every(ex => ex.doneSets >= ex.sets);
-
-  if (!allDone) {
-    // Find the first exercise that is not fully completed
-    const firstIncompleteIndex = list.findIndex(ex => ex.doneSets < ex.sets);
-
-    // Optional haptic feedback to signal "not done yet"
-    if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
-
-    alert("Finish all sets for every exercise before completing the workout.");
-
-    // Jump user to the first incomplete exercise
-    if (firstIncompleteIndex !== -1) {
-      idx = firstIncompleteIndex;
+    if (idx < list.length - 1) {
+      workoutComplete = false;
+      idx++;
+      render();
+      return;
     }
-    workoutComplete = false;
+
+    list.forEach(ex => {
+      if (typeof ex.doneSets !== "number") ex.doneSets = 0;
+    });
+
+    const allDone = list.every(ex => ex.doneSets >= ex.sets);
+
+    if (!allDone) {
+      const firstIncompleteIndex = list.findIndex(ex => ex.doneSets < ex.sets);
+
+      if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
+
+      alert("Finish all sets for every exercise before completing the workout.");
+
+      if (firstIncompleteIndex !== -1) {
+        idx = firstIncompleteIndex;
+      }
+      workoutComplete = false;
+      render();
+      return;
+    }
+
+    workoutComplete = true;
+
+    const img = el("completionImg");
+    if (img && COMPLETION_IMAGES.length > 0) {
+      const src = pickAwardImage();
+      img.classList.remove("animate-in");
+      img.style.opacity = 0;
+      img.style.transform = "scale(0.6)";
+      img.onload = () => {
+        void img.offsetWidth;
+        img.classList.add("animate-in");
+      };
+      img.src = src + "?v=" + Math.random();
+    }
+
+    const ca = el("completionAudio");
+    if (ca && COMPLETION_SOUNDS.length > 0) {
+      try {
+        const soundSrc = pickCompletionSound();
+        ca.pause();
+        ca.currentTime = 0;
+        ca.src = soundSrc + "?v=" + Math.random();
+        ca.volume = 0.3;
+        ca.play();
+      } catch (e) {}
+    }
     render();
-    return;
   }
-
-  // If we reach here, ALL exercises are fully completed → show award screen.
-  workoutComplete = true;
-
-  const img = el("completionImg");
-  if (img && COMPLETION_IMAGES.length > 0) {
-    const src = pickAwardImage();
-    img.classList.remove("animate-in");
-    img.style.opacity = 0;
-    img.style.transform = "scale(0.6)";
-    img.onload = () => {
-      void img.offsetWidth; // reflow to restart animation
-      img.classList.add("animate-in");
-    };
-    img.src = src + "?v=" + Math.random();
-  }
-
-  const ca = el("completionAudio");
-  if (ca && COMPLETION_SOUNDS.length > 0) {
-    try {
-      const soundSrc = pickCompletionSound();
-      ca.pause();
-      ca.currentTime = 0;
-      ca.src = soundSrc + "?v=" + Math.random();
-      ca.volume = 0.3;
-      ca.play();
-    } catch (e) {}
-  }
-  render();
-}
 
   function prevExercise() {
     stopRestTimer();
@@ -842,7 +859,54 @@ function nextExercise() {
     render();
   }
 
-  // Tiny icon state helper
+  // SWAP: toggle current exercise between original and alt
+  function swapExercise() {
+    const list = getExercises();
+    const ex = list[idx];
+    if (!ex) return;
+
+    const key = currentDayKey + ":" + idx;
+    let state = SWAP_STATE[key];
+
+    if (!state) {
+      const alt = EXERCISE_ALTS[ex.name];
+      if (!alt) {
+        alert("No swap set up for this exercise yet.");
+        return;
+      }
+
+      SWAP_STATE[key] = {
+        original: { ...ex },
+        swapped: true
+      };
+
+      list[idx] = {
+        ...alt,
+        doneSets: 0
+      };
+    } else {
+      if (state.swapped) {
+        list[idx] = {
+          ...state.original,
+          doneSets: 0
+        };
+        state.swapped = false;
+      } else {
+        const alt = EXERCISE_ALTS[state.original.name];
+        if (!alt) return;
+        list[idx] = {
+          ...alt,
+          doneSets: 0
+        };
+        state.swapped = true;
+      }
+    }
+
+    stopRestTimer();
+    el("btnNext").classList.remove("next-ready");
+    render();
+  }
+
   function updateQuoteAudioIcon() {
     const icon = el("toggleQuoteAudio");
     if (!icon) return;
@@ -854,9 +918,7 @@ function nextExercise() {
     }
   }
 
-  // ---------------------------
   // EVENTS
-  // ---------------------------
   el("btnStartWorkout").addEventListener("click", startWorkoutTimer);
   el("btnStartRest").addEventListener("click", () => startRestTimer(75));
   el("btnSetDone").addEventListener("click", () => { startWorkoutTimer(); setDone(); });
@@ -877,14 +939,12 @@ function nextExercise() {
     daySel.addEventListener("change", (e) => switchDay(e.target.value));
   }
 
-  // NEW: quote audio icon toggle
   const quoteIcon = el("toggleQuoteAudio");
   if (quoteIcon) {
     quoteIcon.addEventListener("click", () => {
       quoteAudioEnabled = !quoteAudioEnabled;
       updateQuoteAudioIcon();
 
-      // stop current quote audio when turning off
       if (!quoteAudioEnabled) {
         const qa = el("quoteAudio");
         if (qa) {
@@ -894,6 +954,15 @@ function nextExercise() {
       }
     });
     updateQuoteAudioIcon();
+  }
+
+  // SWAP button event
+  const swapBtn = el("btnSwapExercise");
+  if (swapBtn) {
+    swapBtn.addEventListener("click", () => {
+      playSound("audioSwipe");
+      swapExercise();
+    });
   }
 
   render();
