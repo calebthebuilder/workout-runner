@@ -140,6 +140,7 @@
       opacity: 0.45;
     }
 
+    /* Award image animation: scale + fade over ~5s */
     .award-img {
       opacity: 0;
       transform: scale(0.6);
@@ -213,19 +214,7 @@
         </div>
 
         <div>
-          <!-- SWAP: header row with swap button -->
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-            <h2 id="exName" style="margin:0;">—</h2>
-            <button
-              id="btnSwapExercise"
-              class="mini-action"
-              title="Swap this exercise"
-              style="font-size:11px; padding:4px 8px;"
-            >
-              🔁
-            </button>
-          </div>
-
+          <h2 id="exName">—</h2>
           <div class="muted" id="exNotes">—</div>
 
           <div class="row">
@@ -246,6 +235,18 @@
              style="width:100%; height:auto; border-radius:16px; margin-bottom:12px; display:block;">
 
         <audio id="completionAudio"></audio>
+
+        <!-- NEW: Show completed workout button + summary -->
+        <button id="btnShowSummary"
+                class="mini-action primary"
+                style="margin-top:8px;">
+          Show completed workout
+        </button>
+
+        <div id="completionSummary"
+             class="plan"
+             style="margin-top:10px; text-align:left; display:none;">
+        </div>
       </div>
 
       <div class="controls">
@@ -281,84 +282,84 @@
   // ---------------------------
   // QUOTES (text + mp3 mapping)
   // ---------------------------
-  const QUOTE_TEXTS = [
-    /* 1 */ "Every workout is a step forward.",
-    /* 2 */ "You miss 100% of the shots you don't take.",
-    /* 3 */ "Your limits are all in your mind.",
-    /* 4 */ "Motivation ignites the spark, habit fuels the fire.",
-    /* 5 */ "Strength does not come from physical capacity. It comes from an indomitable will.",
-    /* 6 */ "Success isn't about greatness. It's about consistency.",
-    /* 7 */ "There are no shortcuts to any place worth going.",
-    /* 8 */ "Endure the pain, enjoy the gain.",
-    /* 9 */ "No matter how slow you go, you're still lapping everybody on the couch.",
-    /* 10 */ "The body achieves what the mind believes.",
-    /* 11 */ "The only place where success comes before work is in the dictionary.",
-    /* 12 */ "I'm a great believer in luck, and I find the harder I work the more I have of it.",
-    /* 13 */ "We are what we repeatedly do. Excellence then is not an act but a habit.",
-    /* 14 */ "Don't wish it were easier. Wish you were better.",
-    /* 15 */ "The hard days are the best because that's when champions are made.",
-    /* 16 */ "What you do today can improve all your tomorrows.",
-    /* 17 */ "Success is no accident...",
-    /* 18 */ "If something stands between you and your success, move it...",
-    /* 19 */ "Strong today, stronger tomorrow.",
-    /* 20 */ "It's what you do in the dark that puts you in the light.",
-    /* 21 */ "Don't wait until you've reached your goal to be proud of yourself.",
-    /* 22 */ "Your body hears everything your mind says.",
-    /* 23 */ "It's up to you to start making healthy choices today.",
-    /* 24 */ "Stay focused. Stay committed. Stay disciplined.",
-    /* 25 */ "Slow progress is still progress.",
-    /* 26 */ "If it doesn't challenge you, it probably won't change you.",
-    /* 27 */ "Discipline is doing what you hate, but doing it like you love it.",
-    /* 28 */ "Your future self will thank you for today's workout.",
-    /* 29 */ "A river cuts through rock, not because of its power, but because of its persistence.",
-    /* 30 */ "Believe in yourself and you will be unstoppable.",
-    /* 31 */ "Train like a beast.",
-    /* 32 */ "You get what you work for.",
-    /* 33 */ "No pain, no gain.",
-    /* 34 */ "Push yourself because no one else will do it for you.",
-    /* 35 */ "Work out as if your life depends on it, because it does.",
-    /* 36 */ "If you want to achieve what very few people do, you have to do what most people won't.",
-    /* 37 */ "Get comfortable being uncomfortable.",
-    /* 38 */ "What would you rather feel — the sting of discipline or the pain of regret?",
-    /* 39 */ "If you don't have time to do it right, when will you have time to do it over?",
-    /* 40 */ "Discipline equals freedom.",
-    /* 41 */ "The only bad workout is the one that didn’t happen.",
-    /* 42 */ "The more you sweat in training, the less you bleed in battle.",
-    /* 43 */ "If you're tired of starting over, stop giving up.",
-    /* 44 */ "Don't limit your challenges. Challenge your limits.",
-    /* 45 */ "Victory loves preparation.",
-    /* 46 */ "Be stronger than your excuses.",
-    /* 47 */ "What seems impossible today will one day become your warm-up.",
-    /* 48 */ "Today's pain is tomorrow's strength.",
-    /* 49 */ "Stay consistent and the results will follow.",
-    /* 50 */ "Success is the sum of small efforts repeated day in and day out.",
-    /* 51 */ "You don't get what you wish for. You get what you work for.",
-    /* 52 */ "The way to get started is to quit talking and begin doing.",
-    /* 53 */ "The price of excellence is discipline.",
-    /* 54 */ "Results happen when excuses stop.",
-    /* 55 */ "Show up. Put in the work and Stay consistent.",
-    /* 56 */ "Do what you can, with what you have, where you are..",
-    /* 57 */ "Today's effort is tomorrow's progress.",
-    /* 58 */ "The only limit to our realization of tomorrow will be our doubts of today.",
-    /* 59 */ "It always seems impossible until it's done.",
-    /* 60 */ "Fall seven times, stand up eight.",
-    /* 61 */ "The man who moves a mountain begins by carrying small stones.",
-    /* 62 */ "If you train hard, you’ll not only be hard, you’ll be hard to beat.",
-    /* 63 */ "A champion is someone who gets up when they can’t.",
-    /* 64 */ "To give anything less than your best is to sacrifice the gift",
-    /* 65 */ "Whether you think you can or think you can’t, you’re right.",
-    /* 66 */ "Strength does not come from winning. Your struggles develop your strengths.",
-    /* 67 */ "To be a great champion you must believe you are the best. If you’re not, pretend you are.",
-    /* 68 */ "Effort and courage are not enough without purpose and direction.",
-    /* 69 */ "The secret of getting ahead is getting started.",
-    /* 70 */ "Don’t count the reps, make the reps count.",
-    /* 71 */ "What you stay focused on will grow.",
-    /* 72 */ "Success is never owned, it’s rented. And the rent is due every day.",
-    /* 73 */ "There is no substitute for hard work.",
-    /* 74 */ "The greatest wealth is health.",
-    /* 75 */ "Champions keep going when the others stop.",
-    /* 76 */ "A goal without a plan is just a wish.",
-    /* 77 */ "The difference between try and triumph is a little umph.",
+  const QUOTE_TEXTS = [ /* ... your 1–77 quotes exactly as before ... */ 
+    "Every workout is a step forward.",
+    "You miss 100% of the shots you don't take.",
+    "Your limits are all in your mind.",
+    "Motivation ignites the spark, habit fuels the fire.",
+    "Strength does not come from physical capacity. It comes from an indomitable will.",
+    "Success isn't about greatness. It's about consistency.",
+    "There are no shortcuts to any place worth going.",
+    "Endure the pain, enjoy the gain.",
+    "No matter how slow you go, you're still lapping everybody on the couch.",
+    "The body achieves what the mind believes.",
+    "The only place where success comes before work is in the dictionary.",
+    "I'm a great believer in luck, and I find the harder I work the more I have of it.",
+    "We are what we repeatedly do. Excellence then is not an act but a habit.",
+    "Don't wish it were easier. Wish you were better.",
+    "The hard days are the best because that's when champions are made.",
+    "What you do today can improve all your tomorrows.",
+    "Success is no accident...",
+    "If something stands between you and your success, move it...",
+    "Strong today, stronger tomorrow.",
+    "It's what you do in the dark that puts you in the light.",
+    "Don't wait until you've reached your goal to be proud of yourself.",
+    "Your body hears everything your mind says.",
+    "It's up to you to start making healthy choices today.",
+    "Stay focused. Stay committed. Stay disciplined.",
+    "Slow progress is still progress.",
+    "If it doesn't challenge you, it probably won't change you.",
+    "Discipline is doing what you hate, but doing it like you love it.",
+    "Your future self will thank you for today's workout.",
+    "A river cuts through rock, not because of its power, but because of its persistence.",
+    "Believe in yourself and you will be unstoppable.",
+    "Train like a beast.",
+    "You get what you work for.",
+    "No pain, no gain.",
+    "Push yourself because no one else will do it for you.",
+    "Work out as if your life depends on it, because it does.",
+    "If you want to achieve what very few people do, you have to do what most people won't.",
+    "Get comfortable being uncomfortable.",
+    "What would you rather feel — the sting of discipline or the pain of regret?",
+    "If you don't have time to do it right, when will you have time to do it over?",
+    "Discipline equals freedom.",
+    "The only bad workout is the one that didn’t happen.",
+    "The more you sweat in training, the less you bleed in battle.",
+    "If you're tired of starting over, stop giving up.",
+    "Don't limit your challenges. Challenge your limits.",
+    "Victory loves preparation.",
+    "Be stronger than your excuses.",
+    "What seems impossible today will one day become your warm-up.",
+    "Today's pain is tomorrow's strength.",
+    "Stay consistent and the results will follow.",
+    "Success is the sum of small efforts repeated day in and day out.",
+    "You don't get what you wish for. You get what you work for.",
+    "The way to get started is to quit talking and begin doing.",
+    "The price of excellence is discipline.",
+    "Results happen when excuses stop.",
+    "Show up. Put in the work and Stay consistent.",
+    "Do what you can, with what you have, where you are..",
+    "Today's effort is tomorrow's progress.",
+    "The only limit to our realization of tomorrow will be our doubts of today.",
+    "It always seems impossible until it's done.",
+    "Fall seven times, stand up eight.",
+    "The man who moves a mountain begins by carrying small stones.",
+    "If you train hard, you’ll not only be hard, you’ll be hard to beat.",
+    "A champion is someone who gets up when they can’t.",
+    "To give anything less than your best is to sacrifice the gift",
+    "Whether you think you can or think you can’t, you’re right.",
+    "Strength does not come from winning. Your struggles develop your strengths.",
+    "To be a great champion you must believe you are the best. If you’re not, pretend you are.",
+    "Effort and courage are not enough without purpose and direction.",
+    "The secret of getting ahead is getting started.",
+    "Don’t count the reps, make the reps count.",
+    "What you stay focused on will grow.",
+    "Success is never owned, it’s rented. And the rent is due every day.",
+    "There is no substitute for hard work.",
+    "The greatest wealth is health.",
+    "Champions keep going when the others stop.",
+    "A goal without a plan is just a wish.",
+    "The difference between try and triumph is a little umph.",
   ];
 
   const QUOTES = QUOTE_TEXTS.map((text, index) => ({
@@ -421,8 +422,8 @@
     "./award6.png",
     "./award7.png"
   ];
-
   let _awardBag = [];
+
   function pickAwardImage() {
     if (_awardBag.length === 0) {
       _awardBag = _shuffle([...COMPLETION_IMAGES]);
@@ -439,8 +440,8 @@
     "./workout-complete6.mp3",
     "./workout-complete7.mp3"
   ];
-
   let _soundBag = [];
+
   function pickCompletionSound() {
     if (_soundBag.length === 0) {
       _soundBag = _shuffle([...COMPLETION_SOUNDS]);
@@ -448,7 +449,7 @@
     return _soundBag.shift();
   }
 
-  // DAYS DATA
+  // DATA: DAYS + EXERCISES (unchanged)
   const DAYS = {
     day1: {
       label: "Upper 1 – Push",
@@ -465,8 +466,7 @@
           notes:"Elbows pinned. Spread rope at bottom. Full control up.", img:"rope-pushdown.gif" },
       ]
     },
-
-    day2: {
+    day2: { /* unchanged */ 
       label: "Upper 2 – Pull",
       exercises: [
         { name:"Lat Pulldown", sets:3, reps:"8–10", weight:"70–100 lb",
@@ -481,8 +481,7 @@
           notes:"Neutral grip. Full range. Control down.", img:"hammer-curl.gif" },
       ]
     },
-
-    day3: {
+    day3: { /* unchanged */ 
       label: "Upper 3 – Shoulders & Arms",
       exercises: [
         { name:"Machine Shoulder Press", sets:3, reps:"8–10", weight:"40–80 lb",
@@ -497,8 +496,7 @@
           notes:"Elbows narrow. Big stretch behind head. Smooth lockout.", img:"overhead-cable-triceps.gif" },
       ]
     },
-
-    leg1: {
+    leg1: { /* unchanged */ 
       label: "Leg 1 – Quads & Glutes",
       exercises: [
         { name:"Leg Press (Machine)", sets:3, reps:"10–12", weight:"90–180 lb total",
@@ -513,8 +511,7 @@
           notes:"Full stretch at bottom and hard squeeze at top. Use a stable support if needed.", img:"standing-calf-raise.gif" },
       ]
     },
-
-    leg2: {
+    leg2: { /* unchanged */ 
       label: "Leg 2 – Posterior Chain",
       exercises: [
         { name:"Romanian Deadlift (DB/BB)", sets:3, reps:"8–10", weight:"60–135 lb total",
@@ -531,64 +528,20 @@
     }
   };
 
-  // SWAP: one alt per Day 1 exercise
-  const EXERCISE_ALTS = {
-    "Dumbbell Bench Press": {
-      name: "Smith Machine Bench Press",
-      sets: 3,
-      reps: "8–10",
-      weight: "25–40 lb on Smith machine",
-      notes: "Set bar just above chest. Feet planted. Lower with control and press straight up.",
-      img: "smith-benchpress.gif"
-    },
-    "Incline Dumbbell Press": {
-      name: "Incline Machine Press",
-      sets: 3,
-      reps: "8–10",
-      weight: "40–80 lb on machine",
-      notes: "Seat so handles start at mid-chest. Press up and slightly back, control the stack.",
-      img: "incline-machinepress.gif"
-    },
-    "Dumbbell Lateral Raise": {
-      name: "Cable Lateral Raise (Single Arm)",
-      sets: 3,
-      reps: "12–15",
-      weight: "5–15 lb on cable",
-      notes: "Cable starts by hip. Lead with elbow to shoulder height, slow lower down.",
-      img: "cable-lateralraise-single.gif"
-    },
-    "Cable Chest Fly": {
-      name: "Dumbbell Chest Fly (Flat Bench)",
-      sets: 2,
-      reps: "12–15",
-      weight: "10–25 lb dumbbells",
-      notes: "Soft elbows. Big chest stretch, then squeeze dumbbells together over chest.",
-      img: "dumbbell-fly.gif"
-    },
-    "Rope Triceps Pushdown": {
-      name: "Dumbbell Overhead Triceps Extension",
-      sets: 3,
-      reps: "10–12",
-      weight: "20–35 lb dumbbell",
-      notes: "Hold one dumbbell overhead. Elbows in, big stretch behind head, strong lockout.",
-      img: "db-overhead-triceps.gif"
-    }
-  };
-
-  // Remember original vs swapped per (day:index)
-  const SWAP_STATE = {};
-
   // STATE
   let currentDayKey = "day1";
   let idx = 0;
   let workoutComplete = false;
+
   let workoutStart = null;
   let workoutTimerId = null;
+
   let restSeconds = 0;
   let restTimerId = null;
 
   const el = (id) => document.getElementById(id);
 
+  // AUDIO HELPER
   function playSound(id) {
     const a = document.getElementById(id);
     if (!a) return;
@@ -668,6 +621,8 @@
     const btnSet = el("btnSetDone");
     const btnReset = el("btnResetSet");
     const rulesBox = document.querySelector(".mini");
+    const planBox = el("planList");
+    const summaryBox = el("completionSummary");
 
     if (workoutComplete) {
       if (exerciseGrid) exerciseGrid.style.display = "none";
@@ -685,8 +640,12 @@
       if (el("btnPrev")) el("btnPrev").style.display = "none";
       if (el("btnNext")) el("btnNext").style.display = "none";
 
-      if (el("planList")) el("planList").style.display = "none";
+      if (planBox) planBox.style.display = "none";
       if (rulesBox) rulesBox.style.display = "none";
+
+      if (summaryBox) summaryBox.style.display = "none";
+      const btnShowSummary = el("btnShowSummary");
+      if (btnShowSummary) btnShowSummary.textContent = "Show completed workout";
 
     } else {
       if (exerciseGrid) exerciseGrid.style.display = "grid";
@@ -702,7 +661,7 @@
       if (el("btnPrev")) el("btnPrev").style.display = "inline-block";
       if (el("btnNext")) el("btnNext").style.display = "inline-block";
 
-      if (el("planList")) el("planList").style.display = "block";
+      if (planBox) planBox.style.display = "block";
       if (rulesBox) rulesBox.style.display = "block";
 
       el("imgErr").style.display = "none";
@@ -719,25 +678,48 @@
       updateQuote();
     }
 
-    el("planList").innerHTML = list
-      .map((w, i) => {
-        if (typeof w.doneSets !== "number") w.doneSets = 0;
-        const isCurrent = i === idx;
-        const isComplete = w.doneSets >= w.sets;
-        let marker = "•";
-        if (isComplete && isCurrent) marker = "✅👉";
-        else if (isComplete) marker = "✅";
-        else if (isCurrent) marker = "👉";
-        return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
-      })
-      .join("<br>");
+    if (planBox) {
+      planBox.innerHTML = list
+        .map((w, i) => {
+          if (typeof w.doneSets !== "number") w.doneSets = 0;
+          const isCurrent = i === idx;
+          const isComplete = w.doneSets >= w.sets;
+          let marker = "•";
+          if (isComplete && isCurrent) marker = "✅👉";
+          else if (isComplete) marker = "✅";
+          else if (isCurrent) marker = "👉";
+          return `${marker} <b>${w.name}</b> — ${w.sets}×${w.reps} — ${w.weight}`;
+        })
+        .join("<br>");
+    }
 
     const nextBtn = el("btnNext");
-    if (ex.doneSets >= ex.sets) {
-      nextBtn.classList.add("next-ready");
-    } else {
-      nextBtn.classList.remove("next-ready");
+    if (nextBtn) {
+      if (ex.doneSets >= ex.sets) {
+        nextBtn.classList.add("next-ready");
+      } else {
+        nextBtn.classList.remove("next-ready");
+      }
     }
+  }
+
+  // NEW: Build a readable completion summary
+  function buildCompletionSummary() {
+    const day = DAYS[currentDayKey];
+    const list = day.exercises;
+    const header = `<b>${day.label}</b><br><br>`;
+
+    const lines = list.map((ex, i) => {
+      const done = typeof ex.doneSets === "number" ? ex.doneSets : 0;
+      const status = done >= ex.sets ? "✅ Completed" : "⚠️ Incomplete";
+      return `
+        <b>${i + 1}. ${ex.name}</b><br>
+        Sets: ${done}/${ex.sets} — Reps: ${ex.reps} — Weight: ${ex.weight}<br>
+        <span class="muted">${status}</span>
+      `;
+    });
+
+    return header + lines.join("<br><br>");
   }
 
   function nextExercise() {
@@ -761,11 +743,8 @@
 
     if (!allDone) {
       const firstIncompleteIndex = list.findIndex(ex => ex.doneSets < ex.sets);
-
       if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
-
       alert("Finish all sets for every exercise before completing the workout.");
-
       if (firstIncompleteIndex !== -1) {
         idx = firstIncompleteIndex;
       }
@@ -774,6 +753,7 @@
       return;
     }
 
+    // All exercises completed → award screen
     workoutComplete = true;
 
     const img = el("completionImg");
@@ -800,6 +780,7 @@
         ca.play();
       } catch (e) {}
     }
+
     render();
   }
 
@@ -859,54 +840,6 @@
     render();
   }
 
-  // SWAP: toggle current exercise between original and alt
-  function swapExercise() {
-    const list = getExercises();
-    const ex = list[idx];
-    if (!ex) return;
-
-    const key = currentDayKey + ":" + idx;
-    let state = SWAP_STATE[key];
-
-    if (!state) {
-      const alt = EXERCISE_ALTS[ex.name];
-      if (!alt) {
-        alert("No swap set up for this exercise yet.");
-        return;
-      }
-
-      SWAP_STATE[key] = {
-        original: { ...ex },
-        swapped: true
-      };
-
-      list[idx] = {
-        ...alt,
-        doneSets: 0
-      };
-    } else {
-      if (state.swapped) {
-        list[idx] = {
-          ...state.original,
-          doneSets: 0
-        };
-        state.swapped = false;
-      } else {
-        const alt = EXERCISE_ALTS[state.original.name];
-        if (!alt) return;
-        list[idx] = {
-          ...alt,
-          doneSets: 0
-        };
-        state.swapped = true;
-      }
-    }
-
-    stopRestTimer();
-    el("btnNext").classList.remove("next-ready");
-    render();
-  }
-
   function updateQuoteAudioIcon() {
     const icon = el("toggleQuoteAudio");
     if (!icon) return;
@@ -944,7 +877,6 @@
     quoteIcon.addEventListener("click", () => {
       quoteAudioEnabled = !quoteAudioEnabled;
       updateQuoteAudioIcon();
-
       if (!quoteAudioEnabled) {
         const qa = el("quoteAudio");
         if (qa) {
@@ -956,12 +888,18 @@
     updateQuoteAudioIcon();
   }
 
-  // SWAP button event
-  const swapBtn = el("btnSwapExercise");
-  if (swapBtn) {
-    swapBtn.addEventListener("click", () => {
-      playSound("audioSwipe");
-      swapExercise();
+  // NEW: Show completed workout button
+  const btnShowSummary = el("btnShowSummary");
+  if (btnShowSummary) {
+    btnShowSummary.addEventListener("click", () => {
+      const box = el("completionSummary");
+      if (!box) return;
+      box.innerHTML = buildCompletionSummary();
+      const currentlyHidden = (box.style.display === "none" || box.style.display === "");
+      box.style.display = currentlyHidden ? "block" : "none";
+      btnShowSummary.textContent = currentlyHidden
+        ? "Hide completed workout"
+        : "Show completed workout";
     });
   }
 
