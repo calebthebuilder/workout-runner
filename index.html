@@ -752,15 +752,19 @@
       el("exWeight").textContent = ex.weight;
       el("exSetTracker").textContent = `Set ${ex.doneSets}/${ex.sets}`;
 
-      el("exImg").src = "./" + ex.img;
+            el("exImg").src = "./" + ex.img;
 
       // SWAP visibility: only show button if an alternate exists
       if (swapBtn) {
-        const hasAlt = !!EXERCISE_ALTS[ex.name];
+        const key = currentDayKey + ":" + idx;
+        const state = SWAP_STATE[key];
+        const originalName = state ? state.original.name : ex.name;
+        const hasAlt = !!EXERCISE_ALTS[originalName];
         swapBtn.style.display = hasAlt ? "inline-block" : "none";
       }
 
       updateQuote();
+
     }
 
     el("planList").innerHTML = list
