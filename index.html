@@ -4,6 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Workout Helper</title>
+  
+    <!-- PWA: meta + manifest -->
+  <meta name="theme-color" content="#0b0f14" />
+  <meta name="description" content="Workout Helper – guided sets, timers, swaps, quotes, and audio." />
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- PWA Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
+
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background:#0b0f14; color:#e8eef6; }
@@ -1104,6 +1115,18 @@
   window.addEventListener("load", () => {
     playSound("audioIntro");
   });
+</script>
+  
+<!-- PWA: Register Service Worker -->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("./service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg.scope))
+        .catch(err => console.error("Service worker registration failed:", err));
+    });
+  }
 </script>
 
 </body>
