@@ -182,7 +182,7 @@
   padding-right: 28px;
 
   /* Fixed-height viewing window */
-  max-height: 4.2em;    /* ~3 lines tall, adjust if you want */
+  max-height: 6.2em;    /*  adjust if you want */
   overflow: hidden;     /* text that doesn't fit stays inside and is scrolled via JS */
 }
 
@@ -499,33 +499,29 @@ function updateQuote() {
 
 function startQuoteAutoScroll() {
   const box = el("quoteBox");
-  const textEl = el("quoteText");
-  if (!box || !textEl) return;
+  if (!box) return;
 
-  // How much content is actually scrollable?
-  const maxScroll = textEl.scrollHeight - box.clientHeight;
-
-  // If everything fits, no need to scroll
-  if (maxScroll <= 0) {
-    if (quoteScrollTimer) {
-      clearInterval(quoteScrollTimer);
-      quoteScrollTimer = null;
-    }
-    box.scrollTop = 0;
-    return;
-  }
-
-  // Reset any previous loop
+  // Clear any previous scrolling loop
   if (quoteScrollTimer) {
     clearInterval(quoteScrollTimer);
     quoteScrollTimer = null;
   }
 
+  // Reset to top for the new quote
   box.scrollTop = 0;
+
+  // How much can we actually scroll INSIDE this box?
+  const maxScroll = box.scrollHeight - box.clientHeight;
+
+  // If everything fits in the window, no need to scroll
+  if (maxScroll <= 0) {
+    return;
+  }
+
   quoteScrollDirection = 1;
 
-  const step = 0.5;       // pixels per tick (smaller = slower)
-  const intervalMs = 30;  // ms between updates (lower = smoother/faster)
+  const step = 0.5;      // pixels per tick (smaller = slower)
+  const intervalMs = 30; // ms between updates (lower = smoother/faster)
 
   quoteScrollTimer = setInterval(() => {
     let t = box.scrollTop + quoteScrollDirection * step;
@@ -541,6 +537,7 @@ function startQuoteAutoScroll() {
     box.scrollTop = t;
   }, intervalMs);
 }
+
 
   // COMPLETION ASSETS
   const COMPLETION_IMAGES = [
