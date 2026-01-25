@@ -84,7 +84,53 @@
     .plan { margin-top:10px; font-size:12px; color:#b8c7da; line-height:1.5; }
     .plan b { color:#e8eef6; }
     .warn { display:none; margin-top:8px; color:#ffb4b4; font-size:12px; }
+/* Plan list – pill rows */
+.plan-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  margin-bottom: 4px;
+  background: #111820;
+  border: 1px solid transparent;
+}
 
+.plan-item .plan-marker {
+  width: 18px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.plan-item .plan-name {
+  font-weight: 700;
+  color: #e8eef6;
+}
+
+/* Current exercise highlight */
+.plan-item.current {
+  border-color: #355b8f;
+  background: #152235;
+}
+
+/* Completed exercise */
+.plan-item.complete {
+  border-color: #29b15c;
+  background: #10241a;
+  color: #bff7d0;
+}
+
+.plan-item.complete .plan-name {
+  color: #d5ffe1;
+}
+
+/* Current + complete (just finished but still selected) */
+.plan-item.current-complete {
+  border-color: #29b15c;
+  background: linear-gradient(90deg, #10241a, #1f3b63);
+}
+
+    
     .top-timer-row {
       display:flex;
       align-items:center;
@@ -823,18 +869,29 @@
 
     }
 
-    el("planList").innerHTML = list
-      .map((w, i) => {
-        if (typeof w.doneSets !== "number") w.doneSets = 0;
-        const isCurrent = i === idx;
-        const isComplete = w.doneSets >= w.sets;
-        let marker = "•";
-        if (isComplete && isCurrent) marker = "✅👉";
-        else if (isComplete) marker = "✅";
-        else if (isCurrent) marker = "👉";
-        return `${marker} <b>${w.name}`;
-      })
-      .join("<br>");
+el("planList").innerHTML = list
+  .map((w, i) => {
+    if (typeof w.doneSets !== "number") w.doneSets = 0;
+    const isCurrent = i === idx;
+    const isComplete = w.doneSets >= w.sets;
+
+    // figure out which visual state this pill should be in
+    let statusClass = "";
+    if (isCurrent && isComplete) statusClass = " current-complete";
+    else if (isCurrent) statusClass = " current";
+    else if (isComplete) statusClass = " complete";
+
+    const marker = isComplete ? "✅" : isCurrent ? "👉" : "•";
+
+    return `
+      <div class="plan-item${statusClass}">
+        <span class="plan-marker">${marker}</span>
+        <span class="plan-name">${w.name}</span>
+      </div>
+    `;
+  })
+  .join("");
+
 
     const nextBtn = el("btnNext");
     if (ex.doneSets >= ex.sets) {
