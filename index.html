@@ -531,46 +531,7 @@ function updateQuote() {
   startQuoteAutoScroll();
 }
 
-function startQuoteAutoScroll() {
-  const box = el("quoteBox");
-  if (!box) return;
 
-  // Clear any previous scrolling loop
-  if (quoteScrollTimer) {
-    clearInterval(quoteScrollTimer);
-    quoteScrollTimer = null;
-  }
-
-  // Reset to top for the new quote
-  box.scrollTop = 0;
-
-  // How much can we actually scroll INSIDE this box?
-  const maxScroll = box.scrollHeight - box.clientHeight;
-
-  // If everything fits in the window, no need to scroll
-  if (maxScroll <= 0) {
-    return;
-  }
-
-  quoteScrollDirection = 1;
-
-  const step = 0.5;      // pixels per tick (smaller = slower)
-  const intervalMs = 30; // ms between updates (lower = smoother/faster)
-
-  quoteScrollTimer = setInterval(() => {
-    let t = box.scrollTop + quoteScrollDirection * step;
-
-    if (t >= maxScroll) {
-      t = maxScroll;
-      quoteScrollDirection = -1;  // start scrolling back up
-    } else if (t <= 0) {
-      t = 0;
-      quoteScrollDirection = 1;   // start scrolling down again
-    }
-
-    box.scrollTop = t;
-  }, intervalMs);
-}
 
 
   // COMPLETION ASSETS
