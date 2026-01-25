@@ -477,7 +477,6 @@ function playQuoteAudio(src) {
   } catch (e) {}
 }
 
-// Looping auto-scroll (down then up, repeat)
 function startQuoteAutoScroll() {
   const box = document.getElementById("quoteBox");
   if (!box) return;
@@ -499,20 +498,15 @@ function startQuoteAutoScroll() {
     return;
   }
 
-  quoteScrollDirection = 1;
-
   const step = 1.0;      // px per tick (bigger = faster)
   const intervalMs = 25; // ms between ticks (smaller = smoother/faster)
 
   quoteScrollTimer = setInterval(() => {
-    let t = box.scrollTop + quoteScrollDirection * step;
+    let t = box.scrollTop + step;
 
     if (t >= maxScroll) {
-      t = maxScroll;
-      quoteScrollDirection = -1; // go back up
-    } else if (t <= 0) {
+      // once we hit the bottom, jump back to top and start over
       t = 0;
-      quoteScrollDirection = 1;  // go back down
     }
 
     box.scrollTop = t;
