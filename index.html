@@ -481,35 +481,39 @@ function startQuoteAutoScroll() {
   const box = document.getElementById("quoteBox");
   if (!box) return;
 
-  // Clear any previous loop
+  // Clear old loop
   if (quoteScrollTimer) {
     clearInterval(quoteScrollTimer);
     quoteScrollTimer = null;
   }
 
-  // Reset to top for this quote
+  // Reset to top
   box.scrollTop = 0;
 
-  // How much vertical overflow is there?
+  // Total scrollable distance
   const maxScroll = box.scrollHeight - box.clientHeight;
 
-  // If everything fits, don't bother scrolling
-  if (maxScroll <= 0) {
-    return;
-  }
+  // No scrolling needed
+  if (maxScroll <= 0) return;
 
-  const step = 1.0;      // px per tick (bigger = faster)
-  const intervalMs = 25; // ms between ticks (smaller = smoother/faster)
+  const step = 0.8;     // speed (adjust as needed)
+  const intervalMs = 25;
 
   quoteScrollTimer = setInterval(() => {
-    let t = box.scrollTop + step;
+    // If still scrolling down
+    if (box.scrollTop + step < maxScroll) {
+      box.scrollTop += step;
+    } 
+    // At bottom → pause → jump to top → continue
+    else {
+      // PAUSE briefly so the user sees the bottom
+      clearInterval(quoteScrollTimer);
 
-    if (t >= maxScroll) {
-      // once we hit the bottom, jump back to top and start over
-      t = 0;
+      setTimeout(() => {
+        box.scrollTop = 0;  // jump to top
+        startQuoteAutoScroll(); // restart downward scroll
+      }, 600); // pause duration at bottom (milliseconds)
     }
-
-    box.scrollTop = t;
   }, intervalMs);
 }
 
