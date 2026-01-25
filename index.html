@@ -182,10 +182,8 @@
   border-radius: 8px;
   position: relative;
   padding-right: 8px;
-
-  /* Fixed-height viewing window */
-  max-height: 11em;    /*  adjust if you want */
-  overflow: hidden;     /* text that doesn't fit stays inside and is scrolled via JS */
+  height: auto;
+  overflow: visible;
 }
 
     .quote-audio-icon {
@@ -443,10 +441,6 @@ let quoteAudioEnabled = false;
 let _quoteBag = [];
 let _lastQuote = null;
 
-// Auto-scrolling state for motivation quotes
-let quoteScrollTimer = null;
-let quoteScrollDirection = 1;
-
 function _shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -475,42 +469,6 @@ function playQuoteAudio(src) {
   } catch (e) {}
 }
 
-function startQuoteAutoScroll() {
-  const box = el("quoteBox");
-  if (!box) return;
-
-  // Clear any previous scrolling loop
-  if (quoteScrollTimer) {
-    clearInterval(quoteScrollTimer);
-    quoteScrollTimer = null;
-  }
-
-  // Start at the top for the new quote
-  box.scrollTop = 0;
-
-  // How much content is scrollable?
-  const maxScroll = box.scrollHeight - box.clientHeight;
-
-  // If it all fits, no need to scroll
-  if (maxScroll <= 0) {
-    return;
-  }
-
-  const step = 0.2;      // pixels per tick (smaller = slower)
-  const intervalMs = 30; // ms between updates
-
-  quoteScrollTimer = setInterval(() => {
-    let t = box.scrollTop + step;
-
-    // When we hit the bottom, instantly jump back to the top
-    if (t >= maxScroll) {
-      t = 0;
-    }
-
-    box.scrollTop = t;
-  }, intervalMs);
-}
-
 function updateQuote() {
   if (_quoteBag.length === 0) _refillQuoteBag();
   const q = _quoteBag.shift();
@@ -524,13 +482,6 @@ function updateQuote() {
   if (q && q.audio && quoteAudioEnabled) {
     playQuoteAudio(q.audio);
   }
-
-  // Start / restart looping auto-scroll for the new quote
-  startQuoteAutoScroll();
-}
-
-
-
 
   // COMPLETION ASSETS
   const COMPLETION_IMAGES = [
