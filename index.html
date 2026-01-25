@@ -169,18 +169,22 @@
     }
 
     .quote {
-      margin-top: 10px;
-      padding: 10px 12px;
-      background: #111820;
-      border-left: 4px solid #f5c400;
-      color: #f5c400;
-      font-weight: 900;
-      font-size: 13px;
-      line-height: 1.35;
-      border-radius: 8px;
-      position: relative;
-      padding-right: 28px;
-    }
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #111820;
+  border-left: 4px solid #f5c400;
+  color: #f5c400;
+  font-weight: 900;
+  font-size: 13px;
+  line-height: 1.35;
+  border-radius: 8px;
+  position: relative;
+  padding-right: 28px;
+
+  /* Fixed-height viewing window */
+  max-height: 4.2em;    /* ~3 lines tall, adjust if you want */
+  overflow: hidden;     /* text that doesn't fit stays inside and is scrolled via JS */
+}
 
     .quote-audio-icon {
       position: absolute;
@@ -442,6 +446,10 @@
   let _quoteBag = [];
   let _lastQuote = null;
 
+  // Auto-scrolling state for motivation quotes
+  let quoteScrollTimer = null;
+  let quoteScrollDirection = 1;
+
   function _shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -470,18 +478,69 @@
     } catch (e) {}
   }
 
-  function updateQuote() {
-    if (_quoteBag.length === 0) _refillQuoteBag();
-    const q = _quoteBag.shift();
-    _lastQuote = q;
-    const textEl = document.getElementById("quoteText");
-    if (textEl && q && q.text) {
-      textEl.textContent = "“" + q.text + "”";
-    }
-    if (q && q.audio && quoteAudioEnabled) {
-      playQuoteAudio(q.audio);
-    }
+function updateQuote() {
+  if (_quoteBag.length === 0) _refillQuoteBag();
+  const q = _quoteBag.shift();
+  _lastQuote = q;
+
+  const textEl = document.getElementById("quoteText");
+  if (textEl && q && q.text) {
+    textEl.textContent = "“" + q.text + "”";
   }
+
+  // audio behavior unchanged
+  if (q && q.audio && quoteAudioEnabled) {
+    playQuoteAudio(q.audio);
+  }
+
+  // Start / restart looping auto-scroll for the new quote
+  startQuoteAutoScroll();
+}
+
+function startQuoteAutoScroll() {
+  const box = el("quoteBox");
+  const textEl = el("quoteText");
+  if (!box || !textEl) return;
+
+  // How much content is actually scrollable?
+  const maxScroll = textEl.scrollHeight - box.clientHeight;
+
+  // If everything fits, no need to scroll
+  if (maxScroll <= 0) {
+    if (quoteScrollTimer) {
+      clearInterval(quoteScrollTimer);
+      quoteScrollTimer = null;
+    }
+    box.scrollTop = 0;
+    return;
+  }
+
+  // Reset any previous loop
+  if (quoteScrollTimer) {
+    clearInterval(quoteScrollTimer);
+    quoteScrollTimer = null;
+  }
+
+  box.scrollTop = 0;
+  quoteScrollDirection = 1;
+
+  const step = 0.5;       // pixels per tick (smaller = slower)
+  const intervalMs = 30;  // ms between updates (lower = smoother/faster)
+
+  quoteScrollTimer = setInterval(() => {
+    let t = box.scrollTop + quoteScrollDirection * step;
+
+    if (t >= maxScroll) {
+      t = maxScroll;
+      quoteScrollDirection = -1;  // start scrolling back up
+    } else if (t <= 0) {
+      t = 0;
+      quoteScrollDirection = 1;   // start scrolling down again
+    }
+
+    box.scrollTop = t;
+  }, intervalMs);
+}
 
   // COMPLETION ASSETS
   const COMPLETION_IMAGES = [
