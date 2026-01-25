@@ -478,42 +478,38 @@ function playQuoteAudio(src) {
 }
 
 function startQuoteAutoScroll() {
-  const box = document.getElementById("quoteBox");
+  const box = el("quoteBox");
   if (!box) return;
 
-  // Clear old loop
+  // Clear any previous scrolling loop
   if (quoteScrollTimer) {
     clearInterval(quoteScrollTimer);
     quoteScrollTimer = null;
   }
 
-  // Reset to top
+  // Start at the top for the new quote
   box.scrollTop = 0;
 
-  // Total scrollable distance
+  // How much content is scrollable?
   const maxScroll = box.scrollHeight - box.clientHeight;
 
-  // No scrolling needed
-  if (maxScroll <= 0) return;
+  // If it all fits, no need to scroll
+  if (maxScroll <= 0) {
+    return;
+  }
 
-  const step = 0.8;     // speed (adjust as needed)
-  const intervalMs = 25;
+  const step = 0.5;      // pixels per tick (smaller = slower)
+  const intervalMs = 30; // ms between updates
 
   quoteScrollTimer = setInterval(() => {
-    // If still scrolling down
-    if (box.scrollTop + step < maxScroll) {
-      box.scrollTop += step;
-    } 
-    // At bottom → pause → jump to top → continue
-    else {
-      // PAUSE briefly so the user sees the bottom
-      clearInterval(quoteScrollTimer);
+    let t = box.scrollTop + step;
 
-      setTimeout(() => {
-        box.scrollTop = 0;  // jump to top
-        startQuoteAutoScroll(); // restart downward scroll
-      }, 600); // pause duration at bottom (milliseconds)
+    // When we hit the bottom, instantly jump back to the top
+    if (t >= maxScroll) {
+      t = 0;
     }
+
+    box.scrollTop = t;
   }, intervalMs);
 }
 
