@@ -436,47 +436,88 @@
     /* 76 */ "A goal without a plan is just a wish.",
     /* 77 */ "The difference between try and triumph is a little umph.",
   ];
+const QUOTES = QUOTE_TEXTS.map((text, index) => ({
+  text,
+  audio: `quote${index + 1}.mp3`
+}));
 
-  const QUOTES = QUOTE_TEXTS.map((text, index) => ({
-    text,
-    audio: `quote${index + 1}.mp3`
-  }));
+let quoteAudioEnabled = false;
+let _quoteBag = [];
+let _lastQuote = null;
 
-  let quoteAudioEnabled = false;
-  let _quoteBag = [];
-  let _lastQuote = null;
+// Auto-scrolling state for motivation quotes
+let quoteScrollTimer = null;
+let quoteScrollDirection = 1;
 
-  // Auto-scrolling state for motivation quotes
-  let quoteScrollTimer = null;
-  let quoteScrollDirection = 1;
+function _shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
-  function _shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+function _refillQuoteBag() {
+  _quoteBag = _shuffle([...QUOTES]);
+  if (_lastQuote && _quoteBag.length > 1 && _quoteBag[0] === _lastQuote) {
+    [_quoteBag[0], _quoteBag[1]] = [_quoteBag[1], _quoteBag[0]];
+  }
+}
+
+function playQuoteAudio(src) {
+  if (!src || !quoteAudioEnabled) return;
+  const audioEl = document.getElementById("quoteAudio");
+  if (!audioEl) return;
+  try {
+    audioEl.pause();
+    audioEl.currentTime = 0;
+    audioEl.src = src;
+    audioEl.volume = 0.7;
+    audioEl.play();
+  } catch (e) {}
+}
+
+// Looping auto-scroll (down then up, repeat)
+function startQuoteAutoScroll() {
+  const box = document.getElementById("quoteBox");
+  if (!box) return;
+
+  // Clear any previous loop
+  if (quoteScrollTimer) {
+    clearInterval(quoteScrollTimer);
+    quoteScrollTimer = null;
+  }
+
+  // Reset to top for this quote
+  box.scrollTop = 0;
+
+  // How much vertical overflow is there?
+  const maxScroll = box.scrollHeight - box.clientHeight;
+
+  // If everything fits, don't bother scrolling
+  if (maxScroll <= 0) {
+    return;
+  }
+
+  quoteScrollDirection = 1;
+
+  const step = 1.0;      // px per tick (bigger = faster)
+  const intervalMs = 25; // ms between ticks (smaller = smoother/faster)
+
+  quoteScrollTimer = setInterval(() => {
+    let t = box.scrollTop + quoteScrollDirection * step;
+
+    if (t >= maxScroll) {
+      t = maxScroll;
+      quoteScrollDirection = -1; // go back up
+    } else if (t <= 0) {
+      t = 0;
+      quoteScrollDirection = 1;  // go back down
     }
-    return arr;
-  }
 
-  function _refillQuoteBag() {
-    _quoteBag = _shuffle([...QUOTES]);
-    if (_lastQuote && _quoteBag.length > 1 && _quoteBag[0] === _lastQuote) {
-      [_quoteBag[0], _quoteBag[1]] = [_quoteBag[1], _quoteBag[0]];
-    }
-  }
-
-  function playQuoteAudio(src) {
-    if (!src || !quoteAudioEnabled) return;
-    const audioEl = document.getElementById("quoteAudio");
-    if (!audioEl) return;
-    try {
-      audioEl.pause();
-      audioEl.currentTime = 0;
-      audioEl.src = src;
-      audioEl.volume = 0.7;
-      audioEl.play();
-    } catch (e) {}
-  }
+    box.scrollTop = t;
+  }, intervalMs);
+}
 
 function updateQuote() {
   if (_quoteBag.length === 0) _refillQuoteBag();
@@ -488,7 +529,6 @@ function updateQuote() {
     textEl.textContent = "“" + q.text + "”";
   }
 
-  // audio behavior unchanged
   if (q && q.audio && quoteAudioEnabled) {
     playQuoteAudio(q.audio);
   }
